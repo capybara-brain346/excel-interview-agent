@@ -69,16 +69,13 @@ class InterviewApp:
             return chat_history or [], "", self._get_progress_text(), False
 
         try:
-            # Ensure chat_history is initialized
             if chat_history is None:
                 chat_history = []
 
-            # Add user message
             chat_history.append(["You", user_message])
 
             response = self.engine.process_response(user_message)
 
-            # Add interviewer response
             chat_history.append(["Interviewer", response])
 
             progress = self._get_progress_text()
@@ -88,7 +85,6 @@ class InterviewApp:
 
         except Exception as e:
             error_response = f"Error processing response: {str(e)}"
-            # Add error message from interviewer
             chat_history.append(["Interviewer", error_response])
             return chat_history, "", self._get_progress_text(), False
 
@@ -99,7 +95,6 @@ class InterviewApp:
             return chat_history or [], "No active interview", False
 
         try:
-            # Ensure chat_history is initialized
             if chat_history is None:
                 chat_history = []
 

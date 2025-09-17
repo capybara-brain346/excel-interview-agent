@@ -205,7 +205,6 @@ class Reporter:
             "",
         ]
 
-        # Score breakdown
         scores = report.get("scores", {})
         if scores:
             lines.extend(["## 📊 Score Breakdown", ""])
@@ -217,7 +216,6 @@ class Reporter:
                     lines.append(f"**{dimension.title()}:** {mean_score:.1f}/5.0")
             lines.append("")
 
-        # Strengths and weaknesses
         strengths = report.get("strengths", [])
         if strengths:
             lines.extend(["## ✅ Strengths", ""])
@@ -232,7 +230,6 @@ class Reporter:
                 lines.append(f"• {area}")
             lines.append("")
 
-        # Actionable advice
         advice = report.get("actionable_advice", [])
         if advice:
             lines.extend(["## 💡 Actionable Advice", ""])
@@ -240,7 +237,6 @@ class Reporter:
                 lines.append(f"• {item}")
             lines.append("")
 
-        # Question summary
         detailed_responses = report.get("detailed_responses", [])
         if detailed_responses:
             lines.extend(["## 📝 Question Summary", ""])
