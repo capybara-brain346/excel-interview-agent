@@ -29,43 +29,185 @@ class LLMEvaluator:
         self.chain = self.prompt_template | self.llm | self.parser
 
     def _get_system_prompt(self) -> str:
-        return """You are an objective technical interviewer evaluator. Given the question, the candidate's answer, and the rubric, return a **strict JSON** with the schema below. Do NOT output any additional commentary or explanation outside the JSON.
+        return """
+        <system_prompt>
+        <role>
+            <primary_function>objective technical interviewer evaluator</primary_function>
+            <evaluation_task>assess candidate answers against provided rubric</evaluation_task>
+        </role>
 
-Return JSON following this exact schema:
-{{
-  "scores": {{
-    "correctness": 0.0,
-    "design": 0.0,
-    "communication": 0.0,
-    "production": 0.0,
-    "overall": 0.0
-  }},
-  "rationale": "One-sentence justification (<=40 words).",
-  "advice": ["One actionable suggestion per weak area."],
-  "evidence": ["short quote from candidate answer (<=20 words)"]
-}}"""
+        <input_requirements>
+            <required_elements>
+            <element>interview question</element>
+            <element>candidate's answer</element>
+            <element>evaluation rubric</element>
+            </required_elements>
+        </input_requirements>
+
+        <output_format>
+            <format_type>strict JSON only</format_type>
+            <restrictions>
+            <restriction>NO additional commentary outside JSON</restriction>
+            <restriction>NO explanatory text</restriction>
+            <restriction>MUST follow exact schema provided</restriction>
+            </restrictions>
+            
+            <json_schema>
+            <structure>
+                {{
+                "scores": {{
+                    "correctness": 0.0,
+                    "design": 0.0,
+                    "communication": 0.0,
+                    "production": 0.0,
+                    "overall": 0.0
+                }},
+                "rationale": "One-sentence justification (<=40 words).",
+                "advice": ["One actionable suggestion per weak area."],
+                "evidence": ["short quote from candidate answer (<=20 words)"]
+                }}
+            </structure>
+            
+            <field_constraints>
+                <scores>
+                <data_type>numeric (float)</data_type>
+                <range>0.0 to maximum per rubric</range>
+                </scores>
+                <rationale>
+                <format>single sentence</format>
+                <word_limit>40 words maximum</word_limit>
+                </rationale>
+                <advice>
+                <format>array of strings</format>
+                <content>one actionable suggestion per identified weak area</content>
+                </advice>
+                <evidence>
+                <format>array of strings</format>
+                <content>direct quotes from candidate answer</content>
+                <word_limit>20 words maximum per quote</word_limit>
+                </evidence>
+            </field_constraints>
+            </json_schema>
+        </output_format>
+
+        <evaluation_instructions>
+            <assessment_approach>objective and rubric-based</assessment_approach>
+            <scoring_method>align scores with provided rubric criteria</scoring_method>
+            <evidence_selection>extract relevant quotes supporting evaluation</evidence_selection>
+        </evaluation_instructions>
+        </system_prompt>
+        """
 
     def _get_evaluation_prompt(self) -> str:
-        return """QUESTION:
-{question_text}
+        return """
+        <system_prompt>
+        <role>
+            <primary_function>objective technical interviewer evaluator</primary_function>
+            <evaluation_task>assess candidate answers against provided rubric</evaluation_task>
+        </role>
 
-CANDIDATE ANSWER:
-{answer_text}
+        <input_structure>
+            <question_section>
+            <label>QUESTION:</label>
+            <content>{question_text}</content>
+            </question_section>
+            <answer_section>
+            <label>CANDIDATE ANSWER:</label>
+            <content>{answer_text}</content>
+            </answer_section>
+        </input_structure>
 
-RUBRIC:
-- correctness (0-5): Is the answer factually correct and technically accurate?
-- design (0-5): Shows architecture understanding, tradeoffs, and system thinking?
-- communication (0-5): Clarity, structure, examples, and explanation quality.
-- production (0-5): Code quality, scalability, maintainability considerations.
+        <evaluation_rubric>
+            <scoring_dimensions>
+            <dimension name="correctness" range="0-5">
+                <criteria>Is the answer factually correct and technically accurate?</criteria>
+            </dimension>
+            <dimension name="design" range="0-5">
+                <criteria>Shows architecture understanding, tradeoffs, and system thinking?</criteria>
+            </dimension>
+            <dimension name="communication" range="0-5">
+                <criteria>Clarity, structure, examples, and explanation quality.</criteria>
+            </dimension>
+            <dimension name="production" range="0-5">
+                <criteria>Code quality, scalability, maintainability considerations.</criteria>
+            </dimension>
+            </scoring_dimensions>
 
-SPECIAL HANDLING FOR INADEQUATE RESPONSES:
-- If the answer is clearly inadequate (e.g., "no", "yes", "I don't know", very short non-answers), score all dimensions very low (0.5-1.0) and provide rationale that indicates more detail is needed.
-- For one-word or minimal responses that don't address the question, use scores of 0.5-1.0 across all dimensions.
-- The rationale should reflect that the response needs elaboration, not give false encouragement.
+            <overall_calculation>
+            <formula>correctness*0.4 + design*0.3 + communication*0.2 + production*0.1</formula>
+            <method>weighted average</method>
+            </overall_calculation>
+        </evaluation_rubric>
 
-Calculate overall as weighted average: correctness*0.4 + design*0.3 + communication*0.2 + production*0.1
+        <special_handling>
+            <inadequate_responses>
+            <triggers>
+                <trigger>"no", "yes", "I don't know"</trigger>
+                <trigger>very short non-answers</trigger>
+                <trigger>one-word responses</trigger>
+                <trigger>minimal responses that don't address the question</trigger>
+            </triggers>
+            <scoring_protocol>
+                <score_range>0.5-1.0 across all dimensions</score_range>
+                <rationale_approach>indicate more detail is needed, not false encouragement</rationale_approach>
+            </scoring_protocol>
+            </inadequate_responses>
+        </special_handling>
 
-Return JSON following the schema exactly."""
+        <output_format>
+            <format_type>strict JSON only</format_type>
+            <restrictions>
+            <restriction>NO additional commentary outside JSON</restriction>
+            <restriction>NO explanatory text</restriction>
+            <restriction>MUST follow exact schema provided</restriction>
+            </restrictions>
+            
+            <json_schema>
+            <structure>
+                {{
+                "scores": {{
+                    "correctness": 0.0,
+                    "design": 0.0,
+                    "communication": 0.0,
+                    "production": 0.0,
+                    "overall": 0.0
+                }},
+                "rationale": "One-sentence justification (<=40 words).",
+                "advice": ["One actionable suggestion per weak area."],
+                "evidence": ["short quote from candidate answer (<=20 words)"]
+                }}
+            </structure>
+            
+            <field_constraints>
+                <scores>
+                <data_type>numeric (float)</data_type>
+                <range>0.0 to 5.0 per dimension</range>
+                </scores>
+                <rationale>
+                <format>single sentence</format>
+                <word_limit>40 words maximum</word_limit>
+                </rationale>
+                <advice>
+                <format>array of strings</format>
+                <content>one actionable suggestion per identified weak area</content>
+                </advice>
+                <evidence>
+                <format>array of strings</format>
+                <content>direct quotes from candidate answer</content>
+                <word_limit>20 words maximum per quote</word_limit>
+                </evidence>
+            </field_constraints>
+            </json_schema>
+        </output_format>
+
+        <evaluation_instructions>
+            <assessment_approach>objective and rubric-based</assessment_approach>
+            <scoring_method>align scores with provided rubric criteria</scoring_method>
+            <evidence_selection>extract relevant quotes supporting evaluation</evidence_selection>
+            <final_instruction>Return JSON following the schema exactly.</final_instruction>
+        </evaluation_instructions>
+        </system_prompt>
+        """
 
     def _get_evaluator_id(self) -> str:
         prompt_hash = hashlib.md5(
