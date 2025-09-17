@@ -251,7 +251,6 @@ Walk me through your approach to diagnose and fix this performance issue. What t
             )
         except Exception as e:
             logger.error(f"Failed to generate reflection question: {e}")
-            # Check if we're here due to time limit
             elapsed_minutes = self._get_elapsed_minutes()
             if elapsed_minutes >= 15:
                 return """I notice we've reached our 15-minute time limit, so let's wrap up with a quick reflection. Looking back at our conversation today, what's one technical area you're excited to dive deeper into or improve? What would be your approach to developing in that area?"""
@@ -308,5 +307,5 @@ Walk me through your approach to diagnose and fix this performance issue. What t
             "elapsed_minutes": elapsed_minutes,
             "remaining_minutes": remaining_minutes,
             "time_up": elapsed_minutes >= 15,
-            "time_warning": elapsed_minutes >= 12,  # Warning at 12+ minutes
+            "time_warning": elapsed_minutes >= 12,
         }

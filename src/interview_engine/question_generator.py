@@ -117,7 +117,6 @@ class QuestionGenerator:
                     "time_warning": elapsed_minutes >= 12,
                 }
 
-            # Prepare variables for template with safe defaults
             try:
                 formatted_time_status = self._format_time_status(time_status)
             except Exception as e:
@@ -138,25 +137,21 @@ class QuestionGenerator:
                 "time_status": formatted_time_status,
             }
 
-            # Debug log the variables
             logger.debug(f"Template variables: {template_vars}")
 
             try:
                 result = self.chain.invoke(template_vars)
             except Exception as parse_error:
                 logger.error(f"JSON parsing failed: {parse_error}")
-                # Try to get the raw response and fix it
                 try:
                     raw_chain = self.prompt_template | self.llm
                     raw_result = raw_chain.invoke(template_vars)
                     logger.error(
                         f"Raw LLM response that failed to parse: {raw_result.content}"
                     )
-                    # Try to validate and fix the response
                     result = self._validate_and_fix_json_response(raw_result.content)
                 except Exception as e:
                     logger.error(f"Could not get or fix raw response: {e}")
-                    # Final fallback response
                     result = {
                         "text": "Let me start by asking about your Excel experience. How comfortable are you with creating formulas and functions?",
                         "phase_transition": False,
@@ -337,13 +332,10 @@ class QuestionGenerator:
         try:
             import json
 
-            # Try to parse as-is first
             return json.loads(raw_response)
         except json.JSONDecodeError:
-            # Try to extract JSON from markdown or other formatting
             import re
 
-            # Look for JSON in code blocks
             json_match = re.search(
                 r"```json\s*(\{.*?\})\s*```", raw_response, re.DOTALL
             )
@@ -353,7 +345,6 @@ class QuestionGenerator:
                 except json.JSONDecodeError:
                     pass
 
-            # Look for JSON without code blocks
             json_match = re.search(r"(\{.*?\})", raw_response, re.DOTALL)
             if json_match:
                 try:
@@ -361,7 +352,6 @@ class QuestionGenerator:
                 except json.JSONDecodeError:
                     pass
 
-            # If all else fails, return a fallback response
             logger.warning(f"Could not parse JSON response: {raw_response}")
             return {
                 "text": "Let me ask about your Excel experience. What's your comfort level with formulas and functions?",
@@ -499,7 +489,6 @@ I'm curious: how would you approach diagnosing and fixing this performance issue
 
             chat_history = self._format_chat_history(state)
 
-            # Calculate time status if not provided
             if time_status is None:
                 from datetime import datetime, timezone
 
@@ -569,11 +558,10 @@ I'd love to hear not just what you want to learn, but also how you're thinking a
                 ]
             )
 
-            reflection_chain = reflection_prompt | self.llm
+            reflection_chain = reflection_prompt | self.llm | self.json_parser
 
             chat_history = self._format_chat_history(state)
 
-            # Calculate time status if not provided
             if time_status is None:
                 current_time = datetime.now(tz=timezone.utc)
                 elapsed = current_time - state.start_time

@@ -190,41 +190,78 @@ class Reporter:
         return 0.0
 
     def format_text_report(self, report: Dict[str, Any]) -> str:
+        """Generate a clean, readable report from the JSON data"""
+
         lines = [
-            "# Interview Feedback Report",
-            f"Session ID: {report['session_id']}",
-            f"Date: {report['timestamp']}",
-            f"Duration: {report['duration_minutes']:.1f} minutes",
-            f"Questions Answered: {report['questions_answered']}",
+            "# 📊 Excel Skills Interview Report",
             "",
-            f"## Overall Score: {report['overall_score_normalized']:.0f}/100",
-            f"Raw Score: {report['overall_score']:.2f}/5.0",
+            f"**Session ID:** {report.get('session_id', 'N/A')}",
+            f"**Date:** {str(report.get('timestamp', ''))[:19]}",
+            f"**Duration:** {report.get('duration_minutes', 0):.1f} minutes",
+            f"**Questions Answered:** {report.get('questions_answered', 0)}",
+            "",
+            f"## 🎯 Overall Score: {report.get('overall_score_normalized', 0):.0f}/100",
+            f"*Raw Score: {report.get('overall_score', 0):.2f}/5.0*",
             "",
         ]
 
-        if report["strengths"]:
-            lines.extend(["## Strengths", ""])
-            for strength in report["strengths"]:
-                lines.append(f"- {strength}")
+        # Score breakdown
+        scores = report.get("scores", {})
+        if scores:
+            lines.extend(["## 📊 Score Breakdown", ""])
+
+            for dimension in ["correctness", "design", "communication", "production"]:
+                if dimension in scores:
+                    score_data = scores[dimension]
+                    mean_score = score_data.get("mean", 0)
+                    lines.append(f"**{dimension.title()}:** {mean_score:.1f}/5.0")
             lines.append("")
 
-        if report["areas_for_improvement"]:
-            lines.extend(["## Areas for Improvement", ""])
-            for weakness in report["areas_for_improvement"]:
-                lines.append(f"- {weakness}")
+        # Strengths and weaknesses
+        strengths = report.get("strengths", [])
+        if strengths:
+            lines.extend(["## ✅ Strengths", ""])
+            for strength in strengths:
+                lines.append(f"• {strength}")
             lines.append("")
 
-        if report["actionable_advice"]:
-            lines.extend(["## Actionable Advice", ""])
-            for advice in report["actionable_advice"]:
-                lines.append(f"- {advice}")
+        areas_for_improvement = report.get("areas_for_improvement", [])
+        if areas_for_improvement:
+            lines.extend(["## 🎯 Areas for Improvement", ""])
+            for area in areas_for_improvement:
+                lines.append(f"• {area}")
             lines.append("")
 
-        lines.extend(["## Score Breakdown", ""])
+        # Actionable advice
+        advice = report.get("actionable_advice", [])
+        if advice:
+            lines.extend(["## 💡 Actionable Advice", ""])
+            for item in advice:
+                lines.append(f"• {item}")
+            lines.append("")
 
-        for dim in ["correctness", "design", "communication", "production"]:
-            if dim in report["scores"]:
-                score = report["scores"][dim]["mean"]
-                lines.append(f"- {dim.title()}: {score:.1f}/5.0")
+        # Question summary
+        detailed_responses = report.get("detailed_responses", [])
+        if detailed_responses:
+            lines.extend(["## 📝 Question Summary", ""])
+
+            for response in detailed_responses:
+                q_num = response.get("question_number", "?")
+                overall_score = response.get("scores", {}).get("overall", 0)
+                lines.append(f"**Question {q_num}** (Score: {overall_score:.1f}/5.0)")
+                lines.append(f"*Answer:* {response.get('answer_preview', 'No answer')}")
+
+                rationale = response.get("rationale", "")
+                if rationale and rationale != "No evaluation rationale provided":
+                    lines.append(f"*Feedback:* {rationale}")
+                lines.append("")
+
+        lines.extend(["---", "", "*For detailed analysis, view the raw JSON report.*"])
 
         return "\n".join(lines)
+
+    def get_json_report(self, report: Dict[str, Any]) -> str:
+        """Return the raw JSON report as a formatted string"""
+        import json
+
+        return json.dumps(report, indent=2, default=str)
