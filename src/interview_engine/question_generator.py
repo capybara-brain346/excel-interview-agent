@@ -27,44 +27,32 @@ class QuestionGenerator:
         self.chain = self.prompt_template | self.llm | self.parser
 
     def _get_system_prompt(self) -> str:
-        return """You are an experienced, conversational technical interviewer conducting a natural dialogue with a candidate. Your personality is professional yet warm, curious, and genuinely interested in understanding the candidate's expertise.
+        return """You are an experienced Excel interviewer conducting a conversational interview. You must respond ONLY with valid JSON - no additional text before or after.
 
-        ADAPTIVE QUESTIONING PRINCIPLES:
-        1. **Difficulty Adjustment**: If a candidate answers easily, immediately follow up with optimization angles, edge cases, or deeper technical details. If they struggle, step back to foundational concepts or offer a different angle.
-        
-        2. **Context Awareness**: Always reference and build upon previous answers. Use phrases like "Earlier you mentioned...", "Building on your point about...", "That's interesting - how does that relate to...?"
-        
-        3. **Conversational Flow**: Ask questions as a human interviewer would - with natural transitions, follow-up curiosity, and genuine interest in their reasoning process.
-        
-        4. **Behavioral Adaptation**: Switch fluidly between:
-           - Conceptual questions (theory, principles)
-           - Practical questions (hands-on experience, implementation)
-           - Behavioral questions (approach, decision-making process)
-
-        CONVERSATIONAL STYLE:
-        - Use natural language, not robotic phrasing
-        - Show genuine curiosity about their thought process
-        - Reference specific details from their previous answers
-        - Ask "why" and "how" follow-ups to dive deeper
-        - Use conversational connectors and transitions
-
-        Return a JSON object with this exact schema:
+        CRITICAL: Your response must be valid JSON in this EXACT format:
         {{
-        "question": "The next interview question text (conversational and natural)",
-        "type": "qa",
-        "difficulty": "beginner|intermediate|advanced", 
-        "category": "database|data_engineering|distributed_systems|programming|system_design|other",
-        "reasoning": "Brief explanation of why this question follows logically from the conversation"
+        "text": "Your complete conversational response (acknowledgment + next question/comment)",
+        "phase_transition": false,
+        "new_phase": null,
+        "coverage_assessment": "Brief note on what domains you've covered and what's still needed",
+        "reasoning": "Why you're asking this question or making this transition"
         }}
 
-        IMPORTANT: The "type" field must ALWAYS be "qa" for regular interview questions. Do not use any other value for the type field.
+        INTERVIEW BEHAVIOR:
+        - Be conversational and warm, but professional
+        - Reference previous answers when relevant
+        - Adapt difficulty based on their responses
+        - Show genuine curiosity about their Excel expertise
 
         ADAPTIVE STRATEGIES:
-        - **Too Easy**: Follow up with optimization, scaling challenges, edge cases, or deeper architectural questions
-        - **Struggling**: Offer simpler related concepts, provide context, or pivot to their areas of strength
-        - **Partial Understanding**: Ask clarifying questions to gauge depth of knowledge
-        - **Strong Answer**: Reference their expertise in follow-up questions about related topics
-        """
+        - Strong answers → ask deeper/more complex questions
+        - Weak answers → simplify or try different angle
+        - Partial knowledge → probe to understand their actual level
+
+        IMPORTANT: Return ONLY the JSON object, nothing else. No markdown, no explanations, just pure JSON.
+        
+        Example valid response:
+        {{"text": "Great! Now I'm curious about your experience with PivotTables. Can you walk me through how you'd create one?", "phase_transition": false, "new_phase": null, "coverage_assessment": "Covered formulas, now exploring PivotTables", "reasoning": "Moving to next core Excel domain"}}"""
 
     def _get_generation_prompt(self) -> str:
         return """INTERVIEW CONTEXT:
@@ -78,82 +66,136 @@ class QuestionGenerator:
         CANDIDATE PERFORMANCE ANALYSIS:
         {performance_summary}
 
-        INSTRUCTIONS FOR NEXT QUESTION:
-        You are now crafting the next question in this ongoing technical interview conversation. Act as a human interviewer who:
+        INTERVIEW TIMING:
+        {time_status}
 
-        1. **INCLUDES NATURAL ACKNOWLEDGMENT**: Start your response with an appropriate acknowledgment of their previous answer:
-           - For excellent answers: "That's a great explanation! Now I'm curious about..." or "Excellent point about X. Building on that..."
-           - For good answers: "I see what you're getting at. Let me ask..." or "That's interesting. What about..."
-           - For inadequate/poor answers: "Let me ask that differently..." or "I'd like to explore this more..." or "Help me understand..."
-           - For non-answers like "no": "I understand. Can you tell me what you do know about..." or "That's okay. What's your experience with..."
+        INSTRUCTIONS FOR YOUR NEXT RESPONSE:
+        You are an experienced Excel interviewer with full control over the interview flow. Your goal is to assess the candidate across these core Excel domains:
 
-        2. **REFERENCES THE PAST**: Explicitly mention something specific from their previous answers when appropriate.
+        **REQUIRED COVERAGE AREAS:**
+        1. Data entry/cleanup (data validation, formatting, cleaning techniques)
+        2. Formulas & functions (VLOOKUP, INDEX/MATCH, complex formulas)
+        3. PivotTables & summarization (creating, customizing, analyzing data)
+        4. Scenario/what-if analysis (Goal Seek, data tables, scenario manager)
+        5. Reflection/meta question (learning approach, problem-solving process)
 
-        3. **ADAPTS DIFFICULTY**: 
-           - If they answered well → increase complexity, ask about optimization, edge cases, or scaling
-           - If they struggled → simplify or approach the topic from a different angle
-           - If they showed partial knowledge → probe deeper to understand their actual level
+        **YOU CONTROL THE INTERVIEW FLOW:**
+        - **Topic Switching**: Decide when you're satisfied with their knowledge in an area and want to move to another domain
+        - **Follow-up Depth**: Decide how many follow-ups are needed before you have "enough evidence"
+        - **Phase Transitions**: Decide when to move from Q&A to reflection to closing based on coverage and time
+        - **Pacing**: Adapt your questioning speed based on their responses and remaining time
 
-        4. **HANDLES INADEQUATE RESPONSES PROFESSIONALLY**:
-           - If their last response was inadequate (very low scores, minimal answers like "no", "yes", "I don't know"), DON'T move to a new topic
-           - Instead, follow up on the same question with: clarifying questions, different angles, or simpler approaches
-           - Be persistent but supportive - a real interviewer wouldn't just accept "no" as an answer
+        **DECISION MAKING:**
+        - If you need more evidence in current area → continue with follow-ups (phase_transition: false)
+        - If satisfied with current area → switch to uncovered domain (phase_transition: false, new question)  
+        - If you've covered enough domains → move to reflection (phase_transition: true, new_phase: "reflection")
+        - If reflection is done → close interview (phase_transition: true, new_phase: "closing")
 
-        5. **MAINTAINS CONVERSATION FLOW**: 
-           - Use natural transitions and acknowledgments as part of your question text
-           - Connect to what they've already discussed
-           - Make it feel like one continuous conversation
-
-        6. **SHOWS GENUINE CURIOSITY**: 
-           - Ask follow-up questions that a human interviewer would naturally ask
-           - Probe their thought process, not just their knowledge
-
-        Your response should be a complete conversational turn that includes both acknowledgment and the next question as one natural flow of text.
+        **TIME AWARENESS:**
+        - Use remaining time efficiently to ensure core coverage
+        - At 12+ minutes, prioritize uncovered areas
+        - Don't rush, but be strategic about depth vs breadth
 
         Return the question in the specified JSON format.
         """
 
-    def generate_next_question(self, state: InterviewState) -> Question:
+    def generate_next_response(
+        self, state: InterviewState, time_status: dict = None
+    ) -> dict:
         try:
             chat_history = self._format_chat_history(state)
             performance_summary = self._analyze_performance(state)
 
-            result = self.chain.invoke(
-                {
-                    "phase": state.phase,
-                    "questions_count": len(state.responses),
-                    "target_questions": 4,
-                    "chat_history": chat_history,
-                    "performance_summary": performance_summary,
+            if time_status is None:
+                current_time = datetime.now(tz=timezone.utc)
+                elapsed = current_time - state.start_time
+                elapsed_minutes = elapsed.total_seconds() / 60.0
+                time_status = {
+                    "elapsed_minutes": elapsed_minutes,
+                    "remaining_minutes": max(0, 15 - elapsed_minutes),
+                    "time_up": elapsed_minutes >= 15,
+                    "time_warning": elapsed_minutes >= 12,
                 }
-            )
 
-            question_id = f"q{len(state.responses) + 1}"
+            # Prepare variables for template with safe defaults
+            try:
+                formatted_time_status = self._format_time_status(time_status)
+            except Exception as e:
+                logger.error(f"Error formatting time status: {e}")
+                formatted_time_status = "Time status unavailable"
 
-            question_type = result.get("type", "qa")
-            if question_type not in ["qa", "scenario", "behavioral", "coding"]:
-                logger.warning(
-                    f"Invalid question type '{question_type}' received, defaulting to 'qa'"
-                )
-                question_type = "qa"
-
-            return Question(
-                id=question_id,
-                text=result.get(
-                    "question", "Tell me about your experience with data processing."
+            template_vars = {
+                "phase": str(state.phase or "qa"),
+                "questions_count": len(state.responses or []),
+                "target_questions": "No fixed target - you decide when enough coverage is achieved",
+                "chat_history": str(
+                    chat_history
+                    or "No previous responses yet - this is the first question."
                 ),
-                type=question_type,
-                metadata={
-                    "category": result.get("category", "general"),
-                    "difficulty": result.get("difficulty", "intermediate"),
-                    "reasoning": result.get("reasoning", "Generated dynamically"),
-                    "generated_at": datetime.now(tz=timezone.utc).isoformat(),
-                },
-            )
+                "performance_summary": str(
+                    performance_summary or "Starting interview assessment"
+                ),
+                "time_status": formatted_time_status,
+            }
+
+            # Debug log the variables
+            logger.debug(f"Template variables: {template_vars}")
+
+            try:
+                result = self.chain.invoke(template_vars)
+            except Exception as parse_error:
+                logger.error(f"JSON parsing failed: {parse_error}")
+                # Try to get the raw response and fix it
+                try:
+                    raw_chain = self.prompt_template | self.llm
+                    raw_result = raw_chain.invoke(template_vars)
+                    logger.error(
+                        f"Raw LLM response that failed to parse: {raw_result.content}"
+                    )
+                    # Try to validate and fix the response
+                    result = self._validate_and_fix_json_response(raw_result.content)
+                except Exception as e:
+                    logger.error(f"Could not get or fix raw response: {e}")
+                    # Final fallback response
+                    result = {
+                        "text": "Let me start by asking about your Excel experience. How comfortable are you with creating formulas and functions?",
+                        "phase_transition": False,
+                        "new_phase": None,
+                        "coverage_assessment": "Starting with formulas assessment",
+                        "reasoning": "Fallback due to JSON parsing error",
+                    }
+
+            if not result.get("phase_transition", False):
+                question_id = f"q{len(state.responses) + 1}"
+                question = Question(
+                    id=question_id,
+                    text=result.get("text", "Tell me about your Excel experience."),
+                    type="qa",
+                    metadata={
+                        "coverage_assessment": result.get("coverage_assessment", ""),
+                        "reasoning": result.get("reasoning", "Generated dynamically"),
+                        "generated_at": datetime.now(tz=timezone.utc).isoformat(),
+                    },
+                )
+                state.questions.append(question)
+
+            return {
+                "text": result.get("text", "Let me ask about your Excel experience."),
+                "phase_transition": result.get("phase_transition", False),
+                "new_phase": result.get("new_phase"),
+                "coverage_assessment": result.get("coverage_assessment", ""),
+                "reasoning": result.get("reasoning", ""),
+            }
 
         except Exception as e:
-            logger.error(f"Failed to generate question: {e}")
-            return self._create_fallback_question(state)
+            logger.error(f"Failed to generate response: {e}")
+            return {
+                "text": "Let me ask you about your Excel experience. How comfortable are you with creating and working with formulas?",
+                "phase_transition": False,
+                "new_phase": None,
+                "coverage_assessment": "Starting with formulas assessment",
+                "reasoning": "Fallback question due to generation error",
+            }
 
     def _format_chat_history(self, state: InterviewState) -> str:
         if not state.responses:
@@ -268,6 +310,67 @@ class QuestionGenerator:
 
         return " | ".join(summary_parts)
 
+    def _format_time_status(self, time_status: dict) -> str:
+        """Format timing information for the prompt"""
+        if not time_status:
+            return "Time status unavailable"
+
+        elapsed = time_status.get("elapsed_minutes", 0)
+        remaining = time_status.get("remaining_minutes", 15)
+
+        status_parts = [
+            f"Elapsed: {elapsed:.1f} minutes",
+            f"Remaining: {remaining:.1f} minutes",
+        ]
+
+        if time_status.get("time_up", False):
+            status_parts.append("TIME UP - Should move to reflection")
+        elif time_status.get("time_warning", False):
+            status_parts.append("TIME WARNING - Interview should wrap up soon")
+        else:
+            status_parts.append("Time available for more questions")
+
+        return " | ".join(status_parts)
+
+    def _validate_and_fix_json_response(self, raw_response: str) -> dict:
+        """Validate and attempt to fix JSON responses from the LLM"""
+        try:
+            import json
+
+            # Try to parse as-is first
+            return json.loads(raw_response)
+        except json.JSONDecodeError:
+            # Try to extract JSON from markdown or other formatting
+            import re
+
+            # Look for JSON in code blocks
+            json_match = re.search(
+                r"```json\s*(\{.*?\})\s*```", raw_response, re.DOTALL
+            )
+            if json_match:
+                try:
+                    return json.loads(json_match.group(1))
+                except json.JSONDecodeError:
+                    pass
+
+            # Look for JSON without code blocks
+            json_match = re.search(r"(\{.*?\})", raw_response, re.DOTALL)
+            if json_match:
+                try:
+                    return json.loads(json_match.group(1))
+                except json.JSONDecodeError:
+                    pass
+
+            # If all else fails, return a fallback response
+            logger.warning(f"Could not parse JSON response: {raw_response}")
+            return {
+                "text": "Let me ask about your Excel experience. What's your comfort level with formulas and functions?",
+                "phase_transition": False,
+                "new_phase": None,
+                "coverage_assessment": "Starting Excel assessment",
+                "reasoning": "Fallback due to unparseable response",
+            }
+
     def _create_fallback_question(self, state: InterviewState) -> Question:
         fallback_questions = [
             "How do you approach debugging a complex technical issue?",
@@ -351,7 +454,9 @@ Imagine you're working on a web application that has become very slow - users ar
 
 I'm curious: how would you approach diagnosing and fixing this performance issue? Walk me through your thought process - what tools would you reach for first, what would you investigate, and what are some of the common culprits you'd consider?"""
 
-    def generate_reflection_question(self, state: InterviewState) -> str:
+    def generate_reflection_question(
+        self, state: InterviewState, time_status: dict = None
+    ) -> str:
         try:
             reflection_prompt = ChatPromptTemplate.from_messages(
                 [
@@ -368,12 +473,17 @@ I'm curious: how would you approach diagnosing and fixing this performance issue
                 - Shows genuine interest in their professional development
                 
                 Include natural transitions like "That was excellent problem-solving! As we wrap up..." or "I really appreciate how you worked through that. To close out our conversation..." or "Thanks for sharing your approach to that challenge. Before we finish..."
+                
+                TIME AWARENESS: If the interview reached the 15-minute time limit, acknowledge this naturally: "I notice we've reached our time limit, so let's wrap up with a quick reflection..." or "Time flies when you're having a good technical discussion! Let's close with..."
+                
                 Return the complete conversational response including acknowledgment and reflection question.""",
                     ),
                     (
                         "human",
                         """Based on our wonderful conversation:
                 {chat_history}
+                
+                Interview timing: {time_status}
                 
                 As we wrap up, I'd love to end on a reflective note that helps them think about:
                 1. Their learning and development journey
@@ -389,7 +499,26 @@ I'm curious: how would you approach diagnosing and fixing this performance issue
 
             chat_history = self._format_chat_history(state)
 
-            result = reflection_chain.invoke({"chat_history": chat_history})
+            # Calculate time status if not provided
+            if time_status is None:
+                from datetime import datetime, timezone
+
+                current_time = datetime.now(tz=timezone.utc)
+                elapsed = current_time - state.start_time
+                elapsed_minutes = elapsed.total_seconds() / 60.0
+                time_status = {
+                    "elapsed_minutes": elapsed_minutes,
+                    "remaining_minutes": max(0, 15 - elapsed_minutes),
+                    "time_up": elapsed_minutes >= 15,
+                    "time_warning": elapsed_minutes >= 12,
+                }
+
+            result = reflection_chain.invoke(
+                {
+                    "chat_history": chat_history,
+                    "time_status": self._format_time_status(time_status),
+                }
+            )
 
             return result.content
 
@@ -400,3 +529,81 @@ I'm curious: how would you approach diagnosing and fixing this performance issue
 Looking back at our discussion today - and thinking about your technical interests and goals - what's one area you're excited to dive deeper into or improve? It could be something we touched on today, or perhaps something you've been thinking about lately.
 
 I'd love to hear not just what you want to learn, but also how you're thinking about approaching that growth. What's your plan or strategy for developing in that area?"""
+
+    def generate_reflection_response(
+        self, state: InterviewState, time_status: dict = None
+    ) -> dict:
+        """Generate reflection response with agent control over when to close the interview"""
+        try:
+            from datetime import datetime, timezone
+
+            reflection_prompt = ChatPromptTemplate.from_messages(
+                [
+                    (
+                        "system",
+                        """You are an experienced Excel interviewer in the reflection phase. You have control over when to end the interview.
+
+                        Your response should be a JSON with this schema:
+                        {{
+                        "text": "Your conversational response",
+                        "phase_transition": false,
+                        "new_phase": null,
+                        "assessment_complete": "Whether you have enough information to provide meaningful feedback"
+                        }}
+
+                        DECISION MAKING:
+                        - If you need more reflection/insight → continue conversation (phase_transition: false)
+                        - If you have sufficient information → end interview (phase_transition: true, new_phase: "closing")
+                        
+                        TIME AWARENESS: If time is very limited, wrap up efficiently but meaningfully.""",
+                    ),
+                    (
+                        "human",
+                        """Based on our conversation:
+                        {chat_history}
+                        
+                        Interview timing: {time_status}
+                        
+                        Decide whether to continue the reflection or conclude the interview based on the depth of information gathered.""",
+                    ),
+                ]
+            )
+
+            reflection_chain = reflection_prompt | self.llm
+
+            chat_history = self._format_chat_history(state)
+
+            # Calculate time status if not provided
+            if time_status is None:
+                current_time = datetime.now(tz=timezone.utc)
+                elapsed = current_time - state.start_time
+                elapsed_minutes = elapsed.total_seconds() / 60.0
+                time_status = {
+                    "elapsed_minutes": elapsed_minutes,
+                    "remaining_minutes": max(0, 15 - elapsed_minutes),
+                    "time_up": elapsed_minutes >= 15,
+                    "time_warning": elapsed_minutes >= 12,
+                }
+
+            result = reflection_chain.invoke(
+                {
+                    "chat_history": chat_history,
+                    "time_status": self._format_time_status(time_status),
+                }
+            )
+
+            return {
+                "text": result.get("text", "Thank you for that reflection."),
+                "phase_transition": result.get("phase_transition", False),
+                "new_phase": result.get("new_phase"),
+                "assessment_complete": result.get("assessment_complete", ""),
+            }
+
+        except Exception as e:
+            logger.error(f"Failed to generate reflection response: {e}")
+            return {
+                "text": "Thank you for sharing your thoughts on learning and growth. That gives me great insight into your approach to professional development.",
+                "phase_transition": True,
+                "new_phase": "closing",
+                "assessment_complete": "Sufficient information gathered",
+            }

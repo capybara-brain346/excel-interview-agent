@@ -48,37 +48,66 @@ class InterviewEngine:
             return self._current_message
 
         elif self.state.phase == "qa":
-            if len(self.state.responses) < self.target_questions:
-                try:
-                    question = self.question_generator.generate_next_question(
-                        self.state
-                    )
-                    self.state.questions.append(question)
-                    self._current_message = question.text
-                    return self._current_message
-                except Exception as e:
-                    logger.error(f"Failed to generate next question: {e}")
-                    self.state.phase = "scenario"
-                    return self.ask_next()
-            else:
-                self.state.phase = "scenario"
-                self._current_message = self._get_scenario_question()
+            elapsed_minutes = self._get_elapsed_minutes()
+
+            if elapsed_minutes >= 15:
+                self.state.phase = "closing"
+                self._current_message = "I notice we've reached our 15-minute time limit. That wraps up our conversation! I really enjoyed learning about your Excel expertise and approach to problem-solving. I'm putting together your feedback report now - give me just a moment..."
                 return self._current_message
 
-        elif self.state.phase == "scenario":
-            self.state.phase = "reflection"
-            self._current_message = self._get_reflection_question()
-            return self._current_message
+            try:
+                time_status = self._get_time_status()
+                response = self.question_generator.generate_next_response(
+                    self.state, time_status
+                )
+
+                if response.get("phase_transition"):
+                    new_phase = response.get("new_phase")
+                    if new_phase in ["reflection", "closing"]:
+                        self.state.phase = new_phase
+                        if new_phase == "closing":
+                            self._generate_final_report()
+
+                self._current_message = response.get(
+                    "text", "Let me think of our next question..."
+                )
+                return self._current_message
+
+            except Exception as e:
+                logger.error(f"Failed to generate next response: {e}")
+                self._current_message = (
+                    "Let me continue with another question about your Excel experience."
+                )
+                return self._current_message
 
         elif self.state.phase == "reflection":
-            self.state.phase = "closing"
-            self._current_message = "That wraps up our conversation! I really enjoyed learning about your technical background and approach to problem-solving. I'm putting together your feedback report now - give me just a moment..."
-            return self._current_message
+            try:
+                time_status = self._get_time_status()
+                response = self.question_generator.generate_reflection_response(
+                    self.state, time_status
+                )
+
+                if (
+                    response.get("phase_transition")
+                    and response.get("new_phase") == "closing"
+                ):
+                    self.state.phase = "closing"
+                    self._generate_final_report()
+
+                self._current_message = response.get(
+                    "text", "Thank you for that reflection."
+                )
+                return self._current_message
+
+            except Exception as e:
+                logger.error(f"Failed to generate reflection response: {e}")
+                self.state.phase = "closing"
+                return self.ask_next()
 
         elif self.state.phase == "closing":
             if not self.state.feedback_report:
                 self._generate_final_report()
-            self._current_message = "Perfect! I've finished your personalized feedback report. It includes detailed insights on your responses and some actionable suggestions for your technical growth. Thanks for the engaging conversation!"
+            self._current_message = "Perfect! I've finished your personalized feedback report. It includes detailed insights on your responses and some actionable suggestions for your Excel skills development. Thanks for the engaging conversation!"
             return self._current_message
 
         return "Interview session ended."
@@ -197,17 +226,13 @@ class InterviewEngine:
             }
 
     def _get_intro_message(self) -> str:
-        return """Hi there! I'm excited to chat with you about your technical background and experience. 
+        return """Hi there! I'm excited to chat with you about your Excel skills and experience. 
 
-This will be a conversational interview where I'll be curious to learn about your technical knowledge and how you approach problem-solving. We'll cover a few different areas:
+This will be a conversational interview where I'll explore your knowledge across different Excel domains like formulas, data analysis, PivotTables, and problem-solving approaches. I'll adapt the conversation based on your responses and decide when we've covered enough ground.
 
-• Some technical questions where we can dive into topics that interest you
-• A practical scenario to explore your problem-solving approach
-• A brief reflection on your learning journey
+I'm genuinely interested in understanding how you work with Excel and approach data challenges, so please feel free to walk me through your reasoning and share specific examples from your experience.
 
-I'm genuinely interested in understanding your thought process, so please feel free to walk me through your reasoning and ask questions if anything isn't clear. 
-
-Ready to get started? Let's dive in!"""
+We have about 15 minutes together, and I'll make sure we cover the key areas efficiently. Ready to get started? Let's dive in!"""
 
     def _get_scenario_question(self) -> str:
         try:
@@ -220,10 +245,18 @@ Walk me through your approach to diagnose and fix this performance issue. What t
 
     def _get_reflection_question(self) -> str:
         try:
-            return self.question_generator.generate_reflection_question(self.state)
+            time_status = self._get_time_status()
+            return self.question_generator.generate_reflection_question(
+                self.state, time_status
+            )
         except Exception as e:
             logger.error(f"Failed to generate reflection question: {e}")
-            return """**Reflection:** Looking back at this interview, what's one technical area you'd like to improve or learn more about? What would be your plan to develop that skill?"""
+            # Check if we're here due to time limit
+            elapsed_minutes = self._get_elapsed_minutes()
+            if elapsed_minutes >= 15:
+                return """I notice we've reached our 15-minute time limit, so let's wrap up with a quick reflection. Looking back at our conversation today, what's one technical area you're excited to dive deeper into or improve? What would be your approach to developing in that area?"""
+            else:
+                return """That was really insightful - I appreciate how you worked through that challenge! As we wrap up our conversation, I'm really curious about your learning journey. Looking back at our discussion today, what's one technical area you're excited to dive deeper into or improve? What would be your plan to develop that skill?"""
 
     def is_complete(self) -> bool:
         return self.state.phase == "closing" and self.state.feedback_report is not None
@@ -259,3 +292,21 @@ Walk me through your approach to diagnose and fix this performance issue. What t
         self.state.phase = "closing"
         self._generate_final_report()
         return "No problem at all! Thanks for the time we had together. I'll generate a feedback report based on our conversation so far - you've shared some great insights!"
+
+    def _get_elapsed_minutes(self) -> float:
+        """Calculate elapsed time since interview start in minutes"""
+        current_time = datetime.now(tz=timezone.utc)
+        elapsed = current_time - self.state.start_time
+        return elapsed.total_seconds() / 60.0
+
+    def _get_time_status(self) -> dict:
+        """Get timing information for the interview"""
+        elapsed_minutes = self._get_elapsed_minutes()
+        remaining_minutes = max(0, 15 - elapsed_minutes)
+
+        return {
+            "elapsed_minutes": elapsed_minutes,
+            "remaining_minutes": remaining_minutes,
+            "time_up": elapsed_minutes >= 15,
+            "time_warning": elapsed_minutes >= 12,  # Warning at 12+ minutes
+        }
