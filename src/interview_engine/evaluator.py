@@ -58,6 +58,11 @@ RUBRIC:
 - communication (0-5): Clarity, structure, examples, and explanation quality.
 - production (0-5): Code quality, scalability, maintainability considerations.
 
+SPECIAL HANDLING FOR INADEQUATE RESPONSES:
+- If the answer is clearly inadequate (e.g., "no", "yes", "I don't know", very short non-answers), score all dimensions very low (0.5-1.0) and provide rationale that indicates more detail is needed.
+- For one-word or minimal responses that don't address the question, use scores of 0.5-1.0 across all dimensions.
+- The rationale should reflect that the response needs elaboration, not give false encouragement.
+
 Calculate overall as weighted average: correctness*0.4 + design*0.3 + communication*0.2 + production*0.1
 
 Return JSON following the schema exactly."""

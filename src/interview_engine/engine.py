@@ -54,9 +54,7 @@ class InterviewEngine:
                         self.state
                     )
                     self.state.questions.append(question)
-                    self._current_message = (
-                        f"**Question {len(self.state.responses) + 1}:** {question.text}"
-                    )
+                    self._current_message = question.text
                     return self._current_message
                 except Exception as e:
                     logger.error(f"Failed to generate next question: {e}")
@@ -74,13 +72,13 @@ class InterviewEngine:
 
         elif self.state.phase == "reflection":
             self.state.phase = "closing"
-            self._current_message = "Thank you for your responses. I'm now generating your feedback report..."
+            self._current_message = "That wraps up our conversation! I really enjoyed learning about your technical background and approach to problem-solving. I'm putting together your feedback report now - give me just a moment..."
             return self._current_message
 
         elif self.state.phase == "closing":
             if not self.state.feedback_report:
                 self._generate_final_report()
-            self._current_message = "Interview complete. Your feedback report is ready!"
+            self._current_message = "Perfect! I've finished your personalized feedback report. It includes detailed insights on your responses and some actionable suggestions for your technical growth. Thanks for the engaging conversation!"
             return self._current_message
 
         return "Interview session ended."
@@ -111,12 +109,12 @@ class InterviewEngine:
     def _process_qa_response(self, user_text: str) -> str:
         if len(self.state.questions) == 0:
             logger.error("No question available for response processing")
-            return "Error: No question available. Let's continue."
+            return "Hmm, it looks like we had a technical hiccup. Let me ask you something else."
 
         current_question_index = len(self.state.responses)
         if current_question_index >= len(self.state.questions):
             logger.error("Response index out of bounds")
-            return "Error: Response processing issue. Let's continue."
+            return "Let me think of our next question..."
 
         question = self.state.questions[current_question_index]
 
@@ -127,11 +125,11 @@ class InterviewEngine:
             self._save_state()
 
             next_message = self.ask_next()
-            return f"Thank you for your response.\n\n{next_message}"
+            return next_message
 
         except Exception as e:
             logger.error(f"Error evaluating response: {e}")
-            return "There was an issue evaluating your response. Let's continue to the next question."
+            return "I'm having a small technical issue on my end, but let's keep the conversation going with the next question."
 
     def _process_scenario_response(self, user_text: str) -> str:
         scenario_question = Question(
@@ -147,13 +145,12 @@ class InterviewEngine:
             self._save_state()
 
             next_message = self.ask_next()
-            return f"Thank you for working through that scenario.\n\n{next_message}"
+
+            return next_message
 
         except Exception as e:
             logger.error(f"Error evaluating scenario response: {e}")
-            return (
-                "There was an issue evaluating your response. Let's move to reflection."
-            )
+            return "I had a small technical issue there, but let's move on to our final reflection question."
 
     def _process_reflection_response(self, user_text: str) -> str:
         reflection_question = Question(
@@ -170,13 +167,13 @@ class InterviewEngine:
             self._save_state()
 
             next_message = self.ask_next()
-            return f"Thank you for your reflection.\n\n{next_message}"
+            return f"Thank you for sharing that reflection - it's great to hear about your learning goals and growth mindset! {next_message}"
 
         except Exception as e:
             logger.error(f"Error evaluating reflection response: {e}")
             self.state.end_time = datetime.now(tz=timezone.utc)
             next_message = self.ask_next()
-            return f"Thank you for your reflection.\n\n{next_message}"
+            return f"I really appreciate your thoughtful reflection on the interview. {next_message}"
 
     def _generate_final_report(self):
         try:
@@ -200,15 +197,17 @@ class InterviewEngine:
             }
 
     def _get_intro_message(self) -> str:
-        return """Welcome to your technical interview! 
+        return """Hi there! I'm excited to chat with you about your technical background and experience. 
 
-I'll be asking you a series of questions to evaluate your technical knowledge and problem-solving skills. The interview consists of:
+This will be a conversational interview where I'll be curious to learn about your technical knowledge and how you approach problem-solving. We'll cover a few different areas:
 
-1. **Technical Q&A** - Several technical questions
-2. **Scenario** - A practical problem-solving scenario  
-3. **Reflection** - A brief reflection on your experience
+• Some technical questions where we can dive into topics that interest you
+• A practical scenario to explore your problem-solving approach
+• A brief reflection on your learning journey
 
-Please answer thoughtfully and feel free to explain your reasoning. Let's begin!"""
+I'm genuinely interested in understanding your thought process, so please feel free to walk me through your reasoning and ask questions if anything isn't clear. 
+
+Ready to get started? Let's dive in!"""
 
     def _get_scenario_question(self) -> str:
         try:
@@ -259,4 +258,4 @@ Walk me through your approach to diagnose and fix this performance issue. What t
         self.state.end_time = datetime.now(tz=timezone.utc)
         self.state.phase = "closing"
         self._generate_final_report()
-        return "Interview ended early. Generating feedback report from current responses..."
+        return "No problem at all! Thanks for the time we had together. I'll generate a feedback report based on our conversation so far - you've shared some great insights!"
