@@ -1,6 +1,6 @@
 import statistics
 from typing import Dict, List, Any
-from datetime import datetime
+import datetime
 
 from src.interview_engine.models import InterviewState, ResponseRecord
 
@@ -20,7 +20,9 @@ class Reporter:
             return {
                 "message": "No responses to evaluate",
                 "session_id": state.session_id,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.datetime.now(
+                    tz=datetime.timezone.utc
+                ).isoformat(),
             }
 
         scores_summary = self._calculate_scores_summary(state.responses)
@@ -29,7 +31,7 @@ class Reporter:
 
         report = {
             "session_id": state.session_id,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.datetime.now(tz=datetime.timezone.utc),
             "duration_minutes": self._calculate_duration(state),
             "questions_answered": len(state.responses),
             "scores": scores_summary,

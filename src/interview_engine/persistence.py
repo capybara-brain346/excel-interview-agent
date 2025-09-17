@@ -66,7 +66,7 @@ class Persistence:
 
         response_data = {
             "question_id": question_id,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.datetime.now(tz=datetime.timezone.utc).isoformat(),
             "raw_response": raw_response,
         }
 

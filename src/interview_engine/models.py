@@ -1,4 +1,9 @@
-from typing import List, Dict, Optional, Literal
+from typing import List, Dict, Optional
+
+try:
+    from typing import Literal
+except ImportError:
+    from typing_extensions import Literal
 from pydantic import BaseModel, Field
 from datetime import datetime
 

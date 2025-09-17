@@ -63,7 +63,7 @@ Use typed models for clarity and validation.
 ```python
 from typing import List, Dict, Optional, Literal
 from pydantic import BaseModel
-from datetime import datetime
+import datetime
 
 Score = Dict[str, float]  # e.g., {"correctness": 4.0, "communication": 3.5, ...}
 
@@ -377,7 +377,7 @@ This is a **complete, runnable skeleton** that implements the structure above wi
 from typing import List
 import gradio as gr
 import uuid
-from datetime import datetime
+import datetime
 from pydantic import BaseModel
 import json
 import random
@@ -404,7 +404,7 @@ class InterviewState(BaseModel):
     q_index: int = 0
     questions: List[Question] = []
     responses: List[ResponseRecord] = []
-    start_time: datetime = datetime.utcnow()
+    start_time: datetime = datetime.datetime.now(tz=datetime.timezone.utc)
     end_time: datetime = None
     feedback_report: dict = None
     meta: dict = {}

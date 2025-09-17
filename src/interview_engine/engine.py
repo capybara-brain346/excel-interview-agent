@@ -1,11 +1,11 @@
 import uuid
 import logging
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 from src.interview_engine.models import Question, InterviewState
-from src.interview_engine.evaluator import Evaluator
 from src.interview_engine.reporter import Reporter
+from src.interview_engine.evaluator import LLMEvaluator
 from src.interview_engine.persistence import Persistence
 from src.interview_engine.question_generator import QuestionGenerator
 
@@ -15,24 +15,23 @@ logger = logging.getLogger(__name__)
 class InterviewEngine:
     def __init__(
         self,
-        evaluator: Evaluator,
+        evaluator: Optional[LLMEvaluator] = None,
         question_generator: Optional[QuestionGenerator] = None,
         reporter: Optional[Reporter] = None,
         persistence: Optional[Persistence] = None,
-        session_id: Optional[str] = None,
         target_questions: int = 4,
     ):
         self.evaluator = evaluator
-        self.question_generator = question_generator or QuestionGenerator()
-        self.reporter = reporter or Reporter()
-        self.persistence = persistence or Persistence()
+        self.question_generator = question_generator
+        self.reporter = reporter
+        self.persistence = persistence
         self.target_questions = target_questions
 
         self.state = InterviewState(
-            session_id=session_id or str(uuid.uuid4()),
+            session_id=str(uuid.uuid4()),
             phase="intro",
             questions=[],
-            start_time=datetime.utcnow(),
+            start_time=datetime.now(tz=timezone.utc),
             meta={
                 "evaluator_type": type(evaluator).__name__,
                 "target_questions": str(target_questions),
@@ -167,7 +166,7 @@ class InterviewEngine:
             )
             self.state.responses.append(response_record)
 
-            self.state.end_time = datetime.utcnow()
+            self.state.end_time = datetime.now(tz=timezone.utc)
             self._save_state()
 
             next_message = self.ask_next()
@@ -175,7 +174,7 @@ class InterviewEngine:
 
         except Exception as e:
             logger.error(f"Error evaluating reflection response: {e}")
-            self.state.end_time = datetime.utcnow()
+            self.state.end_time = datetime.now(tz=timezone.utc)
             next_message = self.ask_next()
             return f"Thank you for your reflection.\n\n{next_message}"
 
@@ -195,7 +194,9 @@ class InterviewEngine:
             self.state.feedback_report = {
                 "error": "Failed to generate report",
                 "session_id": self.state.session_id,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.datetime.now(
+                    tz=datetime.timezone.utc
+                ).isoformat(),
             }
 
     def _get_intro_message(self) -> str:
@@ -255,7 +256,7 @@ Walk me through your approach to diagnose and fix this performance issue. What t
         return ""
 
     def end_early(self) -> str:
-        self.state.end_time = datetime.utcnow()
+        self.state.end_time = datetime.now(tz=timezone.utc)
         self.state.phase = "closing"
         self._generate_final_report()
         return "Interview ended early. Generating feedback report from current responses..."

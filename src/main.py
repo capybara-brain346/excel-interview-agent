@@ -22,24 +22,6 @@ def setup_logging(level: str = "INFO"):
     )
 
 
-def check_environment():
-    required_vars = []
-    missing_vars = []
-
-    if not os.getenv("GOOGLE_API_KEY"):
-        missing_vars.append("GOOGLE_API_KEY")
-
-    if missing_vars:
-        print("⚠️  Warning: Missing environment variables for LLM integration:")
-        for var in missing_vars:
-            print(f"   - {var}")
-        print("\nYou can still run the app with mock evaluator.")
-        print("To use LLM evaluation, set the required environment variables.")
-        return False
-
-    return True
-
-
 def main():
     parser = argparse.ArgumentParser(description="Technical Interview System")
     parser.add_argument(
@@ -75,24 +57,11 @@ def main():
 
     load_dotenv()
 
-    env_ok = check_environment()
-    use_mock = args.mock or not env_ok
-
-    if use_mock:
-        print("🤖 Running with mock evaluator")
-    else:
-        print("🧠 Running with LLM evaluator")
-
     try:
-        app = create_app(use_mock_evaluator=use_mock)
+        app = create_app()
 
-        print(f"""
+        print("""
 🚀 Starting Technical Interview System
-   
-   📍 Local URL: http://{args.host}:{args.port}
-   🔧 Mode: {"Mock Evaluator" if use_mock else "LLM Evaluator"}
-   📝 Logs: interview_app.log
-   
    Press Ctrl+C to stop the server
         """)
 
@@ -106,11 +75,11 @@ def main():
 
     except KeyboardInterrupt:
         logger.info("Application stopped by user")
-        print("\n👋 Interview system stopped")
+        print("\nInterview system stopped")
 
     except Exception as e:
         logger.error(f"Failed to start application: {e}")
-        print(f"❌ Error starting application: {e}")
+        print(f"Error starting application: {e}")
         sys.exit(1)
 
 

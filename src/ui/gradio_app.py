@@ -5,7 +5,6 @@ from typing import List, Tuple, Optional
 from src.interview_engine import (
     InterviewEngine,
     LLMEvaluator,
-    MockEvaluator,
     Reporter,
     Persistence,
     QuestionGenerator,
@@ -13,10 +12,8 @@ from src.interview_engine import (
 
 
 class InterviewApp:
-    def __init__(self, use_mock_evaluator: bool = False):
+    def __init__(self):
         self.engine: Optional[InterviewEngine] = None
-        self.use_mock = use_mock_evaluator
-        self.persistence = Persistence()
 
     def start_interview(
         self, consent_given: bool, use_llm: bool
@@ -37,26 +34,22 @@ class InterviewApp:
             )
 
         try:
-            evaluator = (
-                LLMEvaluator() if (use_llm and not self.use_mock) else MockEvaluator()
-            )
-
-            question_generator = (
-                QuestionGenerator() if use_llm and not self.use_mock else None
-            )
+            evaluator = LLMEvaluator()
+            question_generator = QuestionGenerator()
+            reporter = Reporter()
+            persistence = Persistence()
 
             self.engine = InterviewEngine(
                 evaluator=evaluator,
                 question_generator=question_generator,
-                reporter=Reporter(),
-                persistence=self.persistence,
+                reporter=reporter,
+                persistence=persistence,
                 target_questions=4,
             )
 
             welcome_message = self.engine.ask_next()
             progress = f"Phase: {self.engine.state.phase.title()} | Questions: 0/{self.engine.target_questions}"
 
-            # Initialize chat with welcome message
             chat_history = [["Interviewer", welcome_message]]
 
             return (chat_history, "", progress, True, False)
@@ -302,6 +295,6 @@ class InterviewApp:
         return interface
 
 
-def create_app(use_mock_evaluator: bool = False) -> gr.Blocks:
-    app = InterviewApp(use_mock_evaluator=use_mock_evaluator)
+def create_app() -> gr.Blocks:
+    app = InterviewApp()
     return app.create_interface()

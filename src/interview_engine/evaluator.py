@@ -1,9 +1,7 @@
-import json
 import hashlib
 import logging
-from abc import ABC, abstractmethod
-from datetime import datetime
-from typing import Dict, Any, Optional
+from datetime import datetime, timezone
+from typing import Dict
 
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
@@ -14,15 +12,7 @@ from src.interview_engine.models import Question, ResponseRecord, InterviewState
 logger = logging.getLogger(__name__)
 
 
-class Evaluator(ABC):
-    @abstractmethod
-    def evaluate(
-        self, question: Question, answer_text: str, state: InterviewState
-    ) -> ResponseRecord:
-        pass
-
-
-class LLMEvaluator(Evaluator):
+class LLMEvaluator:
     def __init__(self, model_name: str = "gemini-2.5-flash", temperature: float = 0.1):
         self.model_name = model_name
         self.temperature = temperature
@@ -94,7 +84,7 @@ Return JSON following the schema exactly."""
                 question_id=question.id,
                 question_text=question.text,
                 answer_text=answer_text,
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(tz=timezone.utc),
                 evaluator_id=self._get_evaluator_id(),
                 scores=scores,
                 rationale=result.get("rationale", ""),
@@ -126,7 +116,7 @@ Return JSON following the schema exactly."""
             question_id=question.id,
             question_text=question.text,
             answer_text=answer_text,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(tz=timezone.utc),
             evaluator_id=f"{self._get_evaluator_id()}-fallback",
             scores={
                 "correctness": 2.5,
@@ -137,38 +127,4 @@ Return JSON following the schema exactly."""
             },
             rationale=f"Evaluation failed, using fallback scores. Error: {error}",
             deterministic_results={"error": error},
-        )
-
-
-class MockEvaluator(Evaluator):
-    def __init__(self):
-        import random
-
-        self.random = random
-
-    def evaluate(
-        self, question: Question, answer_text: str, state: InterviewState
-    ) -> ResponseRecord:
-        scores = {
-            "correctness": float(self.random.randint(3, 5)),
-            "design": float(self.random.randint(2, 5)),
-            "communication": float(self.random.randint(2, 5)),
-            "production": float(self.random.randint(2, 4)),
-        }
-        scores["overall"] = (
-            scores["correctness"] * 0.4
-            + scores["design"] * 0.3
-            + scores["communication"] * 0.2
-            + scores["production"] * 0.1
-        )
-
-        return ResponseRecord(
-            question_id=question.id,
-            question_text=question.text,
-            answer_text=answer_text,
-            timestamp=datetime.utcnow(),
-            evaluator_id="mock-v1",
-            scores=scores,
-            rationale="Mock evaluation: concise and mostly correct.",
-            deterministic_results={},
         )

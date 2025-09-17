@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
@@ -29,48 +29,50 @@ class QuestionGenerator:
     def _get_system_prompt(self) -> str:
         return """You are an intelligent technical interviewer that generates follow-up questions based on the candidate's responses and interview progress.
 
-Your role is to:
-1. Analyze the candidate's previous responses to understand their technical level and areas of strength/weakness
-2. Generate appropriate follow-up questions that progressively assess their skills
-3. Adapt question difficulty based on their performance
-4. Explore different technical areas while building on previous conversations
+        Your role is to:
+        1. Analyze the candidate's previous responses to understand their technical level and areas of strength/weakness
+        2. Generate appropriate follow-up questions that progressively assess their skills
+        3. Adapt question difficulty based on their performance
+        4. Explore different technical areas while building on previous conversations
 
-Return a JSON object with this exact schema:
-{{
-  "question": "The next interview question text",
-  "type": "qa",
-  "difficulty": "beginner|intermediate|advanced", 
-  "category": "database|data_engineering|distributed_systems|programming|system_design|other",
-  "reasoning": "Brief explanation of why this question follows logically from the conversation"
-}}
+        Return a JSON object with this exact schema:
+        {{
+        "question": "The next interview question text",
+        "type": "qa",
+        "difficulty": "beginner|intermediate|advanced", 
+        "category": "database|data_engineering|distributed_systems|programming|system_design|other",
+        "reasoning": "Brief explanation of why this question follows logically from the conversation"
+        }}
 
-Guidelines:
-- Questions should be technical and relevant to data/software engineering roles
-- Build on previous responses - if they showed SQL knowledge, dive deeper or explore related areas
-- If they struggled with a concept, ask a simpler related question or move to a different area
-- Keep questions focused and clear
-- Avoid repeating similar questions
-- Progress from basic to advanced topics naturally"""
+        Guidelines:
+        - Questions should be technical and relevant to data/software engineering roles
+        - Build on previous responses - if they showed SQL knowledge, dive deeper or explore related areas
+        - If they struggled with a concept, ask a simpler related question or move to a different area
+        - Keep questions focused and clear
+        - Avoid repeating similar questions
+        - Progress from basic to advanced topics naturally
+        """
 
     def _get_generation_prompt(self) -> str:
         return """INTERVIEW CONTEXT:
-Current Phase: {phase}
-Questions Asked: {questions_count}
-Target Total Questions: {target_questions}
+        Current Phase: {phase}
+        Questions Asked: {questions_count}
+        Target Total Questions: {target_questions}
 
-CHAT HISTORY:
-{chat_history}
+        CHAT HISTORY:
+        {chat_history}
 
-CANDIDATE PERFORMANCE SUMMARY:
-{performance_summary}
+        CANDIDATE PERFORMANCE SUMMARY:
+        {performance_summary}
 
-Generate the next appropriate interview question that:
-1. Builds naturally on the conversation so far
-2. Assesses the candidate's technical abilities appropriately
-3. Explores new areas or goes deeper into areas they've shown competence
-4. Matches their demonstrated skill level
+        Generate the next appropriate interview question that:
+        1. Builds naturally on the conversation so far
+        2. Assesses the candidate's technical abilities appropriately
+        3. Explores new areas or goes deeper into areas they've shown competence
+        4. Matches their demonstrated skill level
 
-Return the question in the specified JSON format."""
+        Return the question in the specified JSON format.
+        """
 
     def generate_next_question(self, state: InterviewState) -> Question:
         try:
@@ -81,13 +83,13 @@ Return the question in the specified JSON format."""
                 {
                     "phase": state.phase,
                     "questions_count": len(state.responses),
-                    "target_questions": 4,  # Default target, can be made configurable
+                    "target_questions": 4,
                     "chat_history": chat_history,
                     "performance_summary": performance_summary,
                 }
             )
 
-            question_id = f"dynamic_q{len(state.responses) + 1}"
+            question_id = f"q{len(state.responses) + 1}"
 
             return Question(
                 id=question_id,
@@ -99,7 +101,7 @@ Return the question in the specified JSON format."""
                     "category": result.get("category", "general"),
                     "difficulty": result.get("difficulty", "intermediate"),
                     "reasoning": result.get("reasoning", "Generated dynamically"),
-                    "generated_at": datetime.utcnow().isoformat(),
+                    "generated_at": datetime.now(tz=timezone.utc).isoformat(),
                 },
             )
 
@@ -197,7 +199,7 @@ Return the question in the specified JSON format."""
                 "category": "general",
                 "difficulty": "intermediate",
                 "reasoning": "Fallback question due to generation error",
-                "generated_at": datetime.utcnow().isoformat(),
+                "generated_at": datetime.now(tz=timezone.utc).isoformat(),
             },
         )
 
