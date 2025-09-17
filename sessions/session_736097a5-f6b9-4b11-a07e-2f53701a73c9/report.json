@@ -1,0 +1,135 @@
+{
+  "session_id": "736097a5-f6b9-4b11-a07e-2f53701a73c9",
+  "timestamp": "2025-09-17T06:25:35.490785",
+  "duration_minutes": 2.074759766666667,
+  "questions_answered": 5,
+  "scores": {
+    "correctness": {
+      "mean": 0.0,
+      "median": 0.0,
+      "min": 0.0,
+      "max": 0.0,
+      "count": 5
+    },
+    "design": {
+      "mean": 0.0,
+      "median": 0.0,
+      "min": 0.0,
+      "max": 0.0,
+      "count": 5
+    },
+    "communication": {
+      "mean": 0.0,
+      "median": 0.0,
+      "min": 0.0,
+      "max": 0.0,
+      "count": 5
+    },
+    "production": {
+      "mean": 0.0,
+      "median": 0.0,
+      "min": 0.0,
+      "max": 0.0,
+      "count": 5
+    },
+    "overall": {
+      "mean": 0.0,
+      "median": 0.0,
+      "min": 0.0,
+      "max": 0.0,
+      "count": 5
+    }
+  },
+  "overall_score": 0.0,
+  "overall_score_normalized": 0,
+  "strengths": [],
+  "areas_for_improvement": [
+    "Technical accuracy needs improvement (score: 0.0/5)",
+    "System design thinking could be stronger (score: 0.0/5)",
+    "Communication clarity needs work (score: 0.0/5)",
+    "Production considerations need more attention (score: 0.0/5)",
+    "Overall performance needs improvement (score: 0.0/5)"
+  ],
+  "actionable_advice": [
+    "Review fundamental concepts and practice technical accuracy",
+    "Study system design patterns and practice architectural thinking",
+    "Practice explaining technical concepts with clear examples",
+    "Learn about scalability, monitoring, and production best practices"
+  ],
+  "detailed_responses": [
+    {
+      "question_number": 1,
+      "question": "Explain the difference between SQL JOINs (INNER, LEFT, RIGHT, FULL OUTER). When would you use each type?",
+      "answer_preview": "gg",
+      "scores": {
+        "correctness": 0.0,
+        "design": 0.0,
+        "communication": 0.0,
+        "production": 0.0,
+        "overall": 0.0
+      },
+      "rationale": "The candidate's response was inadequate, failing to address the question's core concepts.",
+      "timestamp": "2025-09-17T06:24:33.152679"
+    },
+    {
+      "question_number": 2,
+      "question": "How would you optimize a slow-running SQL query? Walk me through your diagnostic and optimization process.",
+      "answer_preview": "gg",
+      "scores": {
+        "correctness": 0.0,
+        "design": 0.0,
+        "communication": 0.0,
+        "production": 0.0,
+        "overall": 0.0
+      },
+      "rationale": "The candidate's response was inadequate and did not address the prompt.",
+      "timestamp": "2025-09-17T06:24:52.532270"
+    },
+    {
+      "question_number": 3,
+      "question": "Describe how you would design a data pipeline to process 1 million records daily. What technologies and patterns would you consider?",
+      "answer_preview": "gg",
+      "scores": {
+        "correctness": 0.0,
+        "design": 0.0,
+        "communication": 0.0,
+        "production": 0.0,
+        "overall": 0.0
+      },
+      "rationale": "The candidate's response was inadequate, providing no relevant information or design considerations.",
+      "timestamp": "2025-09-17T06:25:10.936915"
+    },
+    {
+      "question_number": 4,
+      "question": "Explain the CAP theorem and how it applies to distributed database systems. Give examples of systems that prioritize different aspects.",
+      "answer_preview": "gg",
+      "scores": {
+        "correctness": 0.0,
+        "design": 0.0,
+        "communication": 0.0,
+        "production": 0.0,
+        "overall": 0.0
+      },
+      "rationale": "The candidate's response was inadequate, failing to address the question's core concepts.",
+      "timestamp": "2025-09-17T06:25:25.467259"
+    },
+    {
+      "question_number": 5,
+      "question": "**Reflection:** Looking back at this interview, what's one technical area you'd like to improve or learn more about? What would be your plan to develop that skill?",
+      "answer_preview": "gg",
+      "scores": {
+        "correctness": 0.0,
+        "design": 0.0,
+        "communication": 0.0,
+        "production": 0.0,
+        "overall": 0.0
+      },
+      "rationale": "The candidate's response was inadequate and did not address the prompt.",
+      "timestamp": "2025-09-17T06:25:35.489927"
+    }
+  ],
+  "meta": {
+    "evaluator_type": "LLMEvaluator",
+    "total_questions": "4"
+  }
+}

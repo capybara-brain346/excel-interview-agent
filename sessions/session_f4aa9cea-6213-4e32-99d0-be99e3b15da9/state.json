@@ -1,0 +1,305 @@
+{
+  "session_id": "f4aa9cea-6213-4e32-99d0-be99e3b15da9",
+  "phase": "closing",
+  "q_index": 0,
+  "difficulty_level": 1,
+  "questions": [
+    {
+      "id": "dynamic_q1",
+      "text": "Imagine you are working with a dataset of customer orders. You have a table named `orders` with the following columns: `order_id` (unique identifier for each order), `customer_id` (identifier for the customer), `order_date` (date of the order), and `total_amount` (the total value of the order). \n\nYour task is to write a SQL query that returns the `customer_id` and their `total_spending` for the top 5 customers who have spent the most money in the last 30 days. Assume `order_date` is a `DATE` type.",
+      "type": "qa",
+      "metadata": {
+        "category": "database",
+        "difficulty": "intermediate",
+        "reasoning": "This is the first question, so it's designed to be a foundational SQL query that assesses basic to intermediate database skills, including filtering by date, aggregation, ordering, and limiting results. It's a common business requirement and provides a good starting point to gauge the candidate's practical SQL knowledge.",
+        "generated_at": "2025-09-17T06:43:50.746346"
+      }
+    },
+    {
+      "id": "dynamic_q2",
+      "text": "It seems we had a bit of a hiccup with the previous SQL query. Let's try a more fundamental SQL task. Using the same `orders` table (columns: `order_id`, `customer_id`, `order_date`, `total_amount`), please write a SQL query to retrieve all orders placed by a customer with `customer_id` equal to `101`. This should return all columns for those specific orders.",
+      "type": "qa",
+      "metadata": {
+        "category": "database",
+        "difficulty": "beginner",
+        "reasoning": "The candidate failed to provide any SQL query for the previous question, indicating a potential struggle with SQL fundamentals. This question is a much simpler SQL query (SELECT with a WHERE clause) designed to assess basic database interaction skills and give the candidate a chance to demonstrate foundational SQL knowledge before moving to more complex topics or different areas.",
+        "generated_at": "2025-09-17T06:44:24.172599"
+      }
+    },
+    {
+      "id": "dynamic_q3",
+      "text": "It seems we're having some difficulty with SQL. Let's shift gears a bit. Can you write a simple function in a programming language of your choice (e.g., Python, Java, C++) that takes two numbers as input and returns their sum?",
+      "type": "qa",
+      "metadata": {
+        "category": "programming",
+        "difficulty": "beginner",
+        "reasoning": "The candidate has struggled with two SQL questions, even a very basic one, indicating a lack of foundational SQL knowledge. This question pivots to a fundamental programming task, allowing them to demonstrate basic coding ability in a language they are comfortable with, which is a core skill for many engineering roles. This is a beginner-level question to establish a baseline.",
+        "generated_at": "2025-09-17T06:44:59.871281"
+      }
+    },
+    {
+      "id": "dynamic_q4",
+      "text": "You've successfully defined a function to add two numbers. Let's try another fundamental programming task. Can you write a function in Python (or your preferred language) that takes a single integer as input and returns the string 'Even' if the number is even, and 'Odd' if the number is odd?",
+      "type": "qa",
+      "metadata": {
+        "category": "programming",
+        "difficulty": "beginner",
+        "reasoning": "The candidate showed a basic understanding of function definition in the previous question. This question builds on that by introducing simple conditional logic and the modulo operator, which are fundamental programming concepts, and remains at a beginner difficulty level appropriate for their demonstrated skills.",
+        "generated_at": "2025-09-17T06:46:07.022962"
+      }
+    }
+  ],
+  "responses": [
+    {
+      "question_id": "dynamic_q1",
+      "question_text": "Imagine you are working with a dataset of customer orders. You have a table named `orders` with the following columns: `order_id` (unique identifier for each order), `customer_id` (identifier for the customer), `order_date` (date of the order), and `total_amount` (the total value of the order). \n\nYour task is to write a SQL query that returns the `customer_id` and their `total_spending` for the top 5 customers who have spent the most money in the last 30 days. Assume `order_date` is a `DATE` type.",
+      "answer_text": "Here is my sql query",
+      "timestamp": "2025-09-17T06:44:13.816024",
+      "evaluator_id": "gemini-2.5-flash-c2f457ce",
+      "scores": {
+        "correctness": 0.0,
+        "design": 0.0,
+        "communication": 0.0,
+        "production": 0.0,
+        "overall": 0.0
+      },
+      "rationale": "The candidate failed to provide any SQL query, making it impossible to evaluate correctness, design, communication, or production aspects of the solution.",
+      "deterministic_results": {}
+    },
+    {
+      "question_id": "dynamic_q2",
+      "question_text": "It seems we had a bit of a hiccup with the previous SQL query. Let's try a more fundamental SQL task. Using the same `orders` table (columns: `order_id`, `customer_id`, `order_date`, `total_amount`), please write a SQL query to retrieve all orders placed by a customer with `customer_id` equal to `101`. This should return all columns for those specific orders.",
+      "answer_text": "Skip",
+      "timestamp": "2025-09-17T06:44:44.683571",
+      "evaluator_id": "gemini-2.5-flash-c2f457ce",
+      "scores": {
+        "correctness": 0.0,
+        "design": 0.0,
+        "communication": 0.0,
+        "production": 0.0,
+        "overall": 0.0
+      },
+      "rationale": "The candidate skipped the question, providing no answer to evaluate against the prompt or rubric criteria.",
+      "deterministic_results": {}
+    },
+    {
+      "question_id": "dynamic_q3",
+      "question_text": "It seems we're having some difficulty with SQL. Let's shift gears a bit. Can you write a simple function in a programming language of your choice (e.g., Python, Java, C++) that takes two numbers as input and returns their sum?",
+      "answer_text": "def add(a, b):\n    return a+b\nadd(4+5)",
+      "timestamp": "2025-09-17T06:45:48.967324",
+      "evaluator_id": "gemini-2.5-flash-c2f457ce",
+      "scores": {
+        "correctness": 3.0,
+        "design": 4.0,
+        "communication": 4.0,
+        "production": 3.0,
+        "overall": 3.5
+      },
+      "rationale": "The function definition is correct and clear, but the example usage demonstrates a fundamental error in calling a function with multiple arguments.",
+      "deterministic_results": {}
+    },
+    {
+      "question_id": "dynamic_q4",
+      "question_text": "You've successfully defined a function to add two numbers. Let's try another fundamental programming task. Can you write a function in Python (or your preferred language) that takes a single integer as input and returns the string 'Even' if the number is even, and 'Odd' if the number is odd?",
+      "answer_text": "I am not familiar with that",
+      "timestamp": "2025-09-17T06:46:33.849128",
+      "evaluator_id": "gemini-2.5-flash-c2f457ce",
+      "scores": {
+        "correctness": 0.0,
+        "design": 0.0,
+        "communication": 1.0,
+        "production": 0.0,
+        "overall": 0.2
+      },
+      "rationale": "The candidate explicitly stated unfamiliarity with the task, providing no solution or technical details for evaluation.",
+      "deterministic_results": {}
+    },
+    {
+      "question_id": "scenario",
+      "question_text": "You're developing a small utility for a content management system. Your task is to create a function in Python (or your preferred language) that takes a single string as input, representing an item's title, and returns the total number of characters in that title. For example, if the input is 'Product A', the function should return 9.",
+      "answer_text": "It should subtract the price from the amount paid, which will result in change ",
+      "timestamp": "2025-09-17T06:48:20.088916",
+      "evaluator_id": "gemini-2.5-flash-c2f457ce",
+      "scores": {
+        "correctness": 0.0,
+        "design": 0.0,
+        "communication": 0.0,
+        "production": 0.0,
+        "overall": 0.0
+      },
+      "rationale": "The candidate's answer is completely unrelated to the question, discussing financial transactions instead of string character counting.",
+      "deterministic_results": {}
+    },
+    {
+      "question_id": "reflection",
+      "question_text": "Considering the technical challenges you encountered today, particularly with SQL and some fundamental programming concepts, what specific areas do you feel would be most valuable for you to focus on in your learning and development right now, and how do those areas align with your long-term technical interests and career aspirations?",
+      "answer_text": "I priortise SQL",
+      "timestamp": "2025-09-17T06:49:02.596416",
+      "evaluator_id": "gemini-2.5-flash-c2f457ce",
+      "scores": {
+        "correctness": 1.0,
+        "design": 0.0,
+        "communication": 0.5,
+        "production": 0.0,
+        "overall": 0.5
+      },
+      "rationale": "The answer is extremely brief, only naming one area without elaborating on specific challenges, fundamental programming concepts, or alignment with long-term goals.",
+      "deterministic_results": {}
+    }
+  ],
+  "start_time": "2025-09-17T06:43:37.742937",
+  "end_time": "2025-09-17T06:49:02.596499",
+  "feedback_report": {
+    "session_id": "f4aa9cea-6213-4e32-99d0-be99e3b15da9",
+    "timestamp": "2025-09-17T06:49:18.225310",
+    "duration_minutes": 5.414226033333334,
+    "questions_answered": 6,
+    "scores": {
+      "correctness": {
+        "mean": 0.6666666666666666,
+        "median": 0.0,
+        "min": 0.0,
+        "max": 3.0,
+        "count": 6
+      },
+      "design": {
+        "mean": 0.6666666666666666,
+        "median": 0.0,
+        "min": 0.0,
+        "max": 4.0,
+        "count": 6
+      },
+      "communication": {
+        "mean": 0.9166666666666666,
+        "median": 0.25,
+        "min": 0.0,
+        "max": 4.0,
+        "count": 6
+      },
+      "production": {
+        "mean": 0.5,
+        "median": 0.0,
+        "min": 0.0,
+        "max": 3.0,
+        "count": 6
+      },
+      "overall": {
+        "mean": 0.7,
+        "median": 0.1,
+        "min": 0.0,
+        "max": 3.5,
+        "count": 6
+      }
+    },
+    "overall_score": 0.7,
+    "overall_score_normalized": 14.0,
+    "strengths": [],
+    "areas_for_improvement": [
+      "Technical accuracy needs improvement (score: 0.7/5)",
+      "System design thinking could be stronger (score: 0.7/5)",
+      "Communication clarity needs work (score: 0.9/5)",
+      "Production considerations need more attention (score: 0.5/5)",
+      "Overall performance needs improvement (score: 0.7/5)"
+    ],
+    "actionable_advice": [
+      "Review fundamental concepts and practice technical accuracy",
+      "Study system design patterns and practice architectural thinking",
+      "Practice explaining technical concepts with clear examples",
+      "Learn about scalability, monitoring, and production best practices"
+    ],
+    "detailed_responses": [
+      {
+        "question_number": 1,
+        "question": "Imagine you are working with a dataset of customer orders. You have a table named `orders` with the following columns: `order_id` (unique identifier for each order), `customer_id` (identifier for the customer), `order_date` (date of the order), and `total_amount` (the total value of the order). \n\nYour task is to write a SQL query that returns the `customer_id` and their `total_spending` for the top 5 customers who have spent the most money in the last 30 days. Assume `order_date` is a `DATE` type.",
+        "answer_preview": "Here is my sql query",
+        "scores": {
+          "correctness": 0.0,
+          "design": 0.0,
+          "communication": 0.0,
+          "production": 0.0,
+          "overall": 0.0
+        },
+        "rationale": "The candidate failed to provide any SQL query, making it impossible to evaluate correctness, design, communication, or production aspects of the solution.",
+        "timestamp": "2025-09-17T06:44:13.816024"
+      },
+      {
+        "question_number": 2,
+        "question": "It seems we had a bit of a hiccup with the previous SQL query. Let's try a more fundamental SQL task. Using the same `orders` table (columns: `order_id`, `customer_id`, `order_date`, `total_amount`), please write a SQL query to retrieve all orders placed by a customer with `customer_id` equal to `101`. This should return all columns for those specific orders.",
+        "answer_preview": "Skip",
+        "scores": {
+          "correctness": 0.0,
+          "design": 0.0,
+          "communication": 0.0,
+          "production": 0.0,
+          "overall": 0.0
+        },
+        "rationale": "The candidate skipped the question, providing no answer to evaluate against the prompt or rubric criteria.",
+        "timestamp": "2025-09-17T06:44:44.683571"
+      },
+      {
+        "question_number": 3,
+        "question": "It seems we're having some difficulty with SQL. Let's shift gears a bit. Can you write a simple function in a programming language of your choice (e.g., Python, Java, C++) that takes two numbers as input and returns their sum?",
+        "answer_preview": "def add(a, b):\n    return a+b\nadd(4+5)",
+        "scores": {
+          "correctness": 3.0,
+          "design": 4.0,
+          "communication": 4.0,
+          "production": 3.0,
+          "overall": 3.5
+        },
+        "rationale": "The function definition is correct and clear, but the example usage demonstrates a fundamental error in calling a function with multiple arguments.",
+        "timestamp": "2025-09-17T06:45:48.967324"
+      },
+      {
+        "question_number": 4,
+        "question": "You've successfully defined a function to add two numbers. Let's try another fundamental programming task. Can you write a function in Python (or your preferred language) that takes a single integer as input and returns the string 'Even' if the number is even, and 'Odd' if the number is odd?",
+        "answer_preview": "I am not familiar with that",
+        "scores": {
+          "correctness": 0.0,
+          "design": 0.0,
+          "communication": 1.0,
+          "production": 0.0,
+          "overall": 0.2
+        },
+        "rationale": "The candidate explicitly stated unfamiliarity with the task, providing no solution or technical details for evaluation.",
+        "timestamp": "2025-09-17T06:46:33.849128"
+      },
+      {
+        "question_number": 5,
+        "question": "You're developing a small utility for a content management system. Your task is to create a function in Python (or your preferred language) that takes a single string as input, representing an item's title, and returns the total number of characters in that title. For example, if the input is 'Product A', the function should return 9.",
+        "answer_preview": "It should subtract the price from the amount paid, which will result in change ",
+        "scores": {
+          "correctness": 0.0,
+          "design": 0.0,
+          "communication": 0.0,
+          "production": 0.0,
+          "overall": 0.0
+        },
+        "rationale": "The candidate's answer is completely unrelated to the question, discussing financial transactions instead of string character counting.",
+        "timestamp": "2025-09-17T06:48:20.088916"
+      },
+      {
+        "question_number": 6,
+        "question": "Considering the technical challenges you encountered today, particularly with SQL and some fundamental programming concepts, what specific areas do you feel would be most valuable for you to focus on in your learning and development right now, and how do those areas align with your long-term technical interests and career aspirations?",
+        "answer_preview": "I priortise SQL",
+        "scores": {
+          "correctness": 1.0,
+          "design": 0.0,
+          "communication": 0.5,
+          "production": 0.0,
+          "overall": 0.5
+        },
+        "rationale": "The answer is extremely brief, only naming one area without elaborating on specific challenges, fundamental programming concepts, or alignment with long-term goals.",
+        "timestamp": "2025-09-17T06:49:02.596416"
+      }
+    ],
+    "meta": {
+      "evaluator_type": "LLMEvaluator",
+      "target_questions": "4"
+    }
+  },
+  "meta": {
+    "evaluator_type": "LLMEvaluator",
+    "target_questions": "4"
+  }
+}
