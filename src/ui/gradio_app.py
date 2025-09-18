@@ -1,5 +1,4 @@
 import gradio as gr
-import json
 from typing import List, Tuple, Optional
 
 from src.interview_engine import (
@@ -17,7 +16,7 @@ class InterviewApp:
 
     def start_interview(
         self, consent_given: bool, use_llm: bool
-    ) -> Tuple[List[List[str]], str, str, bool, bool]:
+    ) -> Tuple[List[List[str]], str, bool, bool]:
         if not consent_given:
             error_chat = [
                 [
@@ -28,7 +27,6 @@ class InterviewApp:
             return (
                 error_chat,
                 "",
-                "Not Started",
                 False,
                 False,
             )
@@ -44,29 +42,34 @@ class InterviewApp:
                 question_generator=question_generator,
                 reporter=reporter,
                 persistence=persistence,
-                target_questions=4,
             )
 
             welcome_message = self.engine.ask_next()
-            progress = f"Phase: {self.engine.state.phase.title()} | Questions: 0/{self.engine.target_questions}"
 
             chat_history = [["Interviewer", welcome_message]]
 
-            return (chat_history, "", progress, True, False)
+            # Automatically send "I understand" response and get first question
+            chat_history.append(["You", "I understand"])
+
+            # Process the automatic response to move to the first question
+            next_response = self.engine.process_response("I understand")
+            chat_history.append(["Interviewer", next_response])
+
+            return (chat_history, "", True, False)
 
         except Exception as e:
             error_msg = f"Failed to start interview: {str(e)}"
             error_chat = [["System", error_msg]]
-            return (error_chat, "", "Error", False, False)
+            return (error_chat, "", False, False)
 
     def submit_response(
         self, user_message: str, chat_history: List[List[str]]
-    ) -> Tuple[List[List[str]], str, str, bool]:
+    ) -> Tuple[List[List[str]], str, bool]:
         if not self.engine:
-            return chat_history or [], "", "No active interview", False
+            return chat_history or [], "", False
 
         if not user_message.strip():
-            return chat_history or [], "", self._get_progress_text(), False
+            return chat_history or [], "", False
 
         try:
             if chat_history is None:
@@ -78,21 +81,20 @@ class InterviewApp:
 
             chat_history.append(["Interviewer", response])
 
-            progress = self._get_progress_text()
             is_complete = self.engine.is_complete()
 
-            return chat_history, "", progress, is_complete
+            return chat_history, "", is_complete
 
         except Exception as e:
             error_response = f"Error processing response: {str(e)}"
             chat_history.append(["Interviewer", error_response])
-            return chat_history, "", self._get_progress_text(), False
+            return chat_history, "", False
 
     def end_interview_early(
         self, chat_history: List[List[str]]
-    ) -> Tuple[List[List[str]], str, bool]:
+    ) -> Tuple[List[List[str]], bool]:
         if not self.engine:
-            return chat_history or [], "No active interview", False
+            return chat_history or [], False
 
         try:
             if chat_history is None:
@@ -102,44 +104,35 @@ class InterviewApp:
             chat_history.append(["System", "[Interview ended early by user]"])
             chat_history.append(["Interviewer", end_message])
 
-            progress = self._get_progress_text()
-            return chat_history, progress, True
+            return chat_history, True
 
         except Exception as e:
             error_msg = f"Error ending interview: {str(e)}"
             chat_history.append(["System", f"[Error ending interview: {error_msg}]"])
-            return chat_history, self._get_progress_text(), False
+            return chat_history, False
 
-    def get_report(self) -> Tuple[str, str]:
+    def get_report(self) -> str:
         if not self.engine or not self.engine.is_complete():
-            return "Interview not complete", ""
+            return "Interview not complete"
 
         try:
-            report = self.engine.get_feedback_report()
             text_report = self.engine.get_text_report()
-
-            json_report = (
-                json.dumps(report, indent=2, default=str)
-                if report
-                else "No report available"
-            )
-            text_display = text_report if text_report else "No text report available"
-
-            return text_display, json_report
+            return text_report if text_report else "No text report available"
 
         except Exception as e:
-            error_msg = f"Error retrieving report: {str(e)}"
-            return error_msg, error_msg
+            return f"Error retrieving report: {str(e)}"
 
-    def _get_progress_text(self) -> str:
-        if not self.engine:
-            return "No active interview"
+    def download_pdf_report(self) -> Optional[str]:
+        if not self.engine or not self.engine.is_complete():
+            return None
 
-        phase = self.engine.state.phase.title()
-        q_num = len(self.engine.state.responses)
-        total_q = self.engine.target_questions + 2
+        try:
+            pdf_path = self.engine.get_pdf_report_path()
+            return pdf_path
 
-        return f"Phase: {phase} | Responses: {q_num}/{total_q}"
+        except Exception as e:
+            print(f"Error generating PDF report: {str(e)}")
+            return None
 
     def create_interface(self) -> gr.Blocks:
         with gr.Blocks(
@@ -153,6 +146,43 @@ class InterviewApp:
             .chat-container {
                 height: 500px;
             }
+            .report-container {
+                max-height: 600px;
+                overflow-y: auto;
+                padding: 15px;
+                border: 1px solid #e0e0e0;
+                border-radius: 8px;
+                background-color: #fafafa;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            }
+            .report-container h1 {
+                color: #2c3e50;
+                border-bottom: 2px solid #3498db;
+                padding-bottom: 10px;
+            }
+            .report-container h2 {
+                color: #34495e;
+                margin-top: 25px;
+                margin-bottom: 15px;
+            }
+            .report-container h3 {
+                color: #7f8c8d;
+                margin-top: 20px;
+                margin-bottom: 10px;
+            }
+            .report-container ul {
+                margin-left: 20px;
+            }
+            .report-container li {
+                margin-bottom: 5px;
+            }
+            .report-container strong {
+                color: #2c3e50;
+            }
+            .report-container em {
+                color: #7f8c8d;
+                font-style: italic;
+            }
             """,
         ) as interface:
             gr.Markdown("""
@@ -163,7 +193,7 @@ class InterviewApp:
             """)
 
             with gr.Row():
-                with gr.Column(scale=2):
+                with gr.Column():
                     consent_checkbox = gr.Checkbox(
                         label="I consent to having my responses recorded and evaluated for this interview",
                         value=False,
@@ -175,11 +205,6 @@ class InterviewApp:
                         )
 
                         start_btn = gr.Button("Start Interview", variant="primary")
-
-                with gr.Column(scale=1):
-                    progress_text = gr.Textbox(
-                        label="Progress", value="Not Started", interactive=False
-                    )
 
             with gr.Row():
                 with gr.Column(scale=3):
@@ -211,26 +236,25 @@ class InterviewApp:
                         "Get Report", variant="secondary", interactive=False
                     )
 
+                    download_btn = gr.Button(
+                        "Download PDF Report",
+                        variant="primary",
+                        interactive=False,
+                        visible=False,
+                    )
+
+                    pdf_file_output = gr.File(
+                        label="Download PDF Report", visible=False
+                    )
+
             with gr.Row():
                 with gr.Column():
                     gr.Markdown("### Interview Report")
 
-                    with gr.Tabs():
-                        with gr.Tab("Text Report"):
-                            text_report = gr.Textbox(
-                                label="Formatted Report",
-                                lines=20,
-                                max_lines=30,
-                                interactive=False,
-                            )
-
-                        with gr.Tab("JSON Report"):
-                            json_report = gr.Textbox(
-                                label="Detailed JSON Report",
-                                lines=20,
-                                max_lines=30,
-                                interactive=False,
-                            )
+                    text_report = gr.Markdown(
+                        value="Complete the interview to view your personalized feedback report...",
+                        elem_classes=["report-container"],
+                    )
 
             start_btn.click(
                 fn=self.start_interview,
@@ -238,7 +262,6 @@ class InterviewApp:
                 outputs=[
                     chatbot,
                     user_input,
-                    progress_text,
                     interview_active,
                     interview_complete,
                 ],
@@ -255,36 +278,56 @@ class InterviewApp:
             submit_btn.click(
                 fn=self.submit_response,
                 inputs=[user_input, chatbot],
-                outputs=[chatbot, user_input, progress_text, interview_complete],
+                outputs=[chatbot, user_input, interview_complete],
             ).then(
-                fn=lambda complete: gr.update(interactive=complete),
+                fn=lambda complete: (
+                    gr.update(interactive=complete),
+                    gr.update(interactive=complete, visible=complete),
+                ),
                 inputs=[interview_complete],
-                outputs=[report_btn],
+                outputs=[report_btn, download_btn],
             )
 
             end_early_btn.click(
                 fn=self.end_interview_early,
                 inputs=[chatbot],
-                outputs=[chatbot, progress_text, interview_complete],
+                outputs=[chatbot, interview_complete],
             ).then(
-                fn=lambda complete: gr.update(interactive=complete),
+                fn=lambda complete: (
+                    gr.update(interactive=complete),
+                    gr.update(interactive=complete, visible=complete),
+                ),
                 inputs=[interview_complete],
-                outputs=[report_btn],
+                outputs=[report_btn, download_btn],
             ).then(
                 fn=lambda: (gr.update(interactive=False), gr.update(interactive=False)),
                 outputs=[submit_btn, end_early_btn],
             )
 
-            report_btn.click(fn=self.get_report, outputs=[text_report, json_report])
+            report_btn.click(fn=self.get_report, outputs=[text_report]).then(
+                fn=lambda: (gr.update(visible=False), gr.update(visible=True)),
+                outputs=[report_btn, download_btn],
+            )
+
+            download_btn.click(
+                fn=self.download_pdf_report,
+                outputs=[pdf_file_output],
+            ).then(
+                fn=lambda: gr.update(visible=True),
+                outputs=[pdf_file_output],
+            )
 
             user_input.submit(
                 fn=self.submit_response,
                 inputs=[user_input, chatbot],
-                outputs=[chatbot, user_input, progress_text, interview_complete],
+                outputs=[chatbot, user_input, interview_complete],
             ).then(
-                fn=lambda complete: gr.update(interactive=complete),
+                fn=lambda complete: (
+                    gr.update(interactive=complete),
+                    gr.update(interactive=complete, visible=complete),
+                ),
                 inputs=[interview_complete],
-                outputs=[report_btn],
+                outputs=[report_btn, download_btn],
             )
 
         return interface

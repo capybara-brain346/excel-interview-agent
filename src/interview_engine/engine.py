@@ -19,13 +19,11 @@ class InterviewEngine:
         question_generator: Optional[QuestionGenerator] = None,
         reporter: Optional[Reporter] = None,
         persistence: Optional[Persistence] = None,
-        target_questions: int = 4,
     ):
         self.evaluator = evaluator
         self.question_generator = question_generator
         self.reporter = reporter
         self.persistence = persistence
-        self.target_questions = target_questions
 
         self.state = InterviewState(
             session_id=str(uuid.uuid4()),
@@ -34,7 +32,6 @@ class InterviewEngine:
             start_time=datetime.now(tz=timezone.utc),
             meta={
                 "evaluator_type": type(evaluator).__name__,
-                "target_questions": str(target_questions),
             },
         )
 
@@ -206,7 +203,9 @@ class InterviewEngine:
 
     def _generate_final_report(self):
         try:
-            self.state.feedback_report = self.reporter.generate_report(self.state)
+            self.state.feedback_report = (
+                self.reporter.generate_constructive_feedback_report(self.state)
+            )
 
             if self.persistence:
                 self.persistence.save_report(
@@ -217,6 +216,8 @@ class InterviewEngine:
 
         except Exception as e:
             logger.error(f"Error generating final report: {e}")
+            import datetime
+
             self.state.feedback_report = {
                 "error": "Failed to generate report",
                 "session_id": self.state.session_id,
@@ -268,7 +269,15 @@ Walk me through your approach to diagnose and fix this performance issue. What t
 
     def get_text_report(self) -> Optional[str]:
         if self.state.feedback_report:
-            return self.reporter.format_text_report(self.state.feedback_report)
+            return self.reporter.format_constructive_text_report(
+                self.state.feedback_report
+            )
+        return None
+
+    def get_pdf_report_path(self) -> Optional[str]:
+        """Generate and return the path to a PDF report"""
+        if self.state.feedback_report:
+            return self.reporter.generate_pdf_report(self.state.feedback_report)
         return None
 
     def save(self, path: Optional[str] = None) -> str:
