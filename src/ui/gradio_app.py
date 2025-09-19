@@ -14,23 +14,7 @@ class InterviewApp:
     def __init__(self):
         self.engine: Optional[InterviewEngine] = None
 
-    def start_interview(
-        self, consent_given: bool, use_llm: bool
-    ) -> Tuple[List[List[str]], str, bool, bool]:
-        if not consent_given:
-            error_chat = [
-                [
-                    "System",
-                    "Please provide consent to record and evaluate your responses before starting the interview.",
-                ]
-            ]
-            return (
-                error_chat,
-                "",
-                False,
-                False,
-            )
-
+    def start_interview(self) -> Tuple[List[List[str]], str, bool, bool]:
         try:
             evaluator = LLMEvaluator()
             question_generator = QuestionGenerator()
@@ -194,16 +178,7 @@ class InterviewApp:
 
             with gr.Row():
                 with gr.Column():
-                    consent_checkbox = gr.Checkbox(
-                        label="I consent to having my responses recorded and evaluated for this interview",
-                        value=False,
-                    )
-
                     with gr.Row():
-                        use_llm_checkbox = gr.Checkbox(
-                            label="Use LLM Evaluator (requires API key)", value=False
-                        )
-
                         start_btn = gr.Button("Start Interview", variant="primary")
 
             with gr.Row():
@@ -258,7 +233,7 @@ class InterviewApp:
 
             start_btn.click(
                 fn=self.start_interview,
-                inputs=[consent_checkbox, use_llm_checkbox],
+                inputs=[],
                 outputs=[
                     chatbot,
                     user_input,
