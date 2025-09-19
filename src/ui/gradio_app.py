@@ -32,10 +32,8 @@ class InterviewApp:
 
             chat_history = [["Interviewer", welcome_message]]
 
-            # Automatically send "I understand" response and get first question
             chat_history.append(["You", "I understand"])
 
-            # Process the automatic response to move to the first question
             next_response = self.engine.process_response("I understand")
             chat_history.append(["Interviewer", next_response])
 
@@ -134,23 +132,27 @@ class InterviewApp:
                 max-height: 600px;
                 overflow-y: auto;
                 padding: 15px;
-                border: 1px solid #e0e0e0;
+                border: 1px solid #444;
                 border-radius: 8px;
-                background-color: #fafafa;
+                background-color: #2c3e50 !important;
+                color: #ecf0f1 !important;
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             }
+            .report-container * {
+                color: #ecf0f1 !important;
+            }
             .report-container h1 {
-                color: #2c3e50;
-                border-bottom: 2px solid #3498db;
+                color: #ecf0f1 !important;
+                border-bottom: 2px solid #f39c12;
                 padding-bottom: 10px;
             }
             .report-container h2 {
-                color: #34495e;
+                color: #bdc3c7 !important;
                 margin-top: 25px;
                 margin-bottom: 15px;
             }
             .report-container h3 {
-                color: #7f8c8d;
+                color: #95a5a6 !important;
                 margin-top: 20px;
                 margin-bottom: 10px;
             }
@@ -161,11 +163,14 @@ class InterviewApp:
                 margin-bottom: 5px;
             }
             .report-container strong {
-                color: #2c3e50;
+                color: #ecf0f1 !important;
             }
             .report-container em {
-                color: #7f8c8d;
+                color: #95a5a6 !important;
                 font-style: italic;
+            }
+            .report-container a {
+                color: #f39c12 !important;
             }
             """,
         ) as interface:

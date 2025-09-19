@@ -31,11 +31,9 @@ class Reporter:
             "production": 0.1,
         }
 
-        # Initialize LLM for agent-based report generation
         self.llm = ChatGoogleGenerativeAI(model=model_name, temperature=temperature)
         self.parser = JsonOutputParser()
 
-        # Create report generation chain
         self.report_prompt_template = ChatPromptTemplate.from_messages(
             [
                 ("system", self._get_report_generation_system_prompt()),
@@ -425,17 +423,14 @@ class Reporter:
         self, state: InterviewState
     ) -> Dict[str, Any]:
         """Generate enhanced constructive feedback report using LLM agent"""
-        # Generate base report with scores and basic data
         base_report = self.generate_report(state)
 
         if not state.responses:
             return base_report
 
         try:
-            # Use LLM to generate constructive feedback
             agent_feedback = self._generate_agent_based_feedback(state, base_report)
 
-            # Merge agent-generated feedback with base report
             base_report.update(agent_feedback)
             base_report["report_type"] = "constructive_feedback"
 
@@ -443,7 +438,6 @@ class Reporter:
 
         except Exception as e:
             logger.error(f"Agent-based report generation failed: {e}")
-            # Fallback to rule-based generation
             return self._generate_fallback_constructive_report(state, base_report)
 
     def _generate_agent_based_feedback(
@@ -451,13 +445,10 @@ class Reporter:
     ) -> Dict[str, Any]:
         """Use LLM agent to generate constructive feedback"""
         try:
-            # Prepare detailed responses for the prompt
             detailed_responses_text = self._format_responses_for_prompt(state.responses)
 
-            # Calculate dimension scores
             scores_summary = base_report.get("scores", {})
 
-            # Prepare prompt data
             prompt_data = {
                 "session_id": state.session_id,
                 "duration_minutes": base_report.get("duration_minutes", 0),
@@ -477,7 +468,6 @@ class Reporter:
                 "detailed_responses": detailed_responses_text,
             }
 
-            # Generate report using LLM
             agent_result = self.report_chain.invoke(prompt_data)
 
             return agent_result
@@ -863,7 +853,6 @@ class Reporter:
                 ]
             )
 
-            # Handle optional secondary focus
             secondary_focus = learning_path.get("secondary_focus")
             if secondary_focus:
                 lines.append(f"**Secondary Focus:** {secondary_focus.title()}")
@@ -876,7 +865,6 @@ class Reporter:
                 ]
             )
 
-            # Handle learning milestones
             milestones = learning_path.get("milestones", [])
             if milestones:
                 lines.append("**Learning Milestones:**")
@@ -946,7 +934,6 @@ class Reporter:
             ]
         )
 
-        # Add detailed scores breakdown
         scores = report.get("scores", {})
         if scores:
             lines.extend(["### Score Breakdown by Dimension", ""])
@@ -1186,11 +1173,9 @@ class Reporter:
 
                 story.append(Spacer(1, 10))
 
-        # Add raw statistics section
         story.append(Spacer(1, 20))
         story.append(Paragraph("Raw Statistics", heading_style))
 
-        # Session details
         story.append(Paragraph("<b>Session Details:</b>", styles["Normal"]))
         story.append(
             Paragraph(
@@ -1228,7 +1213,6 @@ class Reporter:
         )
         story.append(Spacer(1, 10))
 
-        # Detailed scores breakdown
         scores = report.get("scores", {})
         if scores:
             story.append(
@@ -1260,7 +1244,6 @@ class Reporter:
                     )
             story.append(Spacer(1, 10))
 
-        # Add strengths and weaknesses
         strengths = report.get("strengths", [])
         if strengths:
             story.append(Paragraph("<b>Identified Strengths:</b>", styles["Normal"]))
@@ -1275,7 +1258,6 @@ class Reporter:
                 story.append(Paragraph(f"• {area}", styles["Normal"]))
             story.append(Spacer(1, 5))
 
-        # Add metadata if available
         meta = report.get("meta", {})
         if meta:
             story.append(Paragraph("<b>Technical Metadata:</b>", styles["Normal"]))
